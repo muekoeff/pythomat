@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from mechanize import Browser
 import http.client
+import getpass
 
 http.client._MAXHEADERS = 1000
 
@@ -31,7 +32,10 @@ def start(name, items):
 
             if password is None:
                 print("Credentials 'pythomat.{}' not found in keyring".format(keyring_id))
-                exit(1)
+                print("You'll be prompted to enter you password for '{}' with the username '{}' in order to save it in your keyring as 'pythomat.{}'.".format(name, username, keyring_id))
+                print("If you don't want to please terminate Pythomat and edit your *.ini-file.")
+                password = getpass.getpass("Password for {} keyring: ".format(name))
+                keyring.set_password("pythomat.{}".format(keyring_id), username, password)
         except keyring.errors.KeyringError as ex:
             print("Login for {} failed. Keyring locked: {}".format(name, ex))
             exit(1)

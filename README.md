@@ -8,17 +8,14 @@ Die Dateien als geteilten Ordner in der [Nextcloud-Instanz der Fachrichtung](htt
 Der Pythomat ist leicht erweiterbar, klein und (relativ) schnell installiert. Er ist in Python geschrieben, weil Cehmat, Javamat oder Essemelmat einfach dumm klingt. Und, weil Python plattformunabhängig ist. Und, weil der Autor es noch nicht konnte, als er das Skript begonnen hat.
 
 # Voraussetzungen
-
-Python 3, sowie die Pakete BeautifulSoup4, Keyring (nur für das Modul *cms*) und Mechanize werden benötigt.
+Python 3, sowie das Pakete Mechanize, und bei Verwendung des Moduls *cms* BeautifulSoup4 und Keyring, werden benötigt.
 
 # Installation
-
 - Python 3 von https://python.org/ herunterladen und installieren.
-- [*setuptools*](https://pypi.org/project/setuptools/) herunterladen und installieren.
 - In der Konsole *`pip install mechanize`* eingeben.
 - Sollte das Modul [*cms*](#cms) gebraucht werden: In der Konsole *`pip install beautifulsoup4 keyring`* eingeben.
 - Einen Ordner *pythomat* anlegen.
-- [*youtube-dl*](https://ytdl-org.github.io/youtube-dl/) herunterladen und in den Ordner verschieben oder global installieren.
+- Sollte der Modus [*youtube*](#youtube) gebraucht werden: [*youtube-dl*](https://ytdl-org.github.io/youtube-dl/) herunterladen und in den Ordner verschieben oder global installieren.
 - Dateien dieses Repos herunterladen und in den Ordner verschieben.
 
 # Konfiguration
@@ -56,10 +53,11 @@ Lädt `<module>.py` und führt `<module>.start(section, items)` aus. `section` i
 ### `single`
 Lädt eine einzelne Datei herunter, falls sie auf dem Server geändert wurde.
 
-| Parameter	| Beschreibung |
-| ---------	| ------------ |
-| `uri`		| URL der zu herunterzuladenden Datei. |
-| `saveto`	| Verzeichnis, in welches die Datei heruntergeladen werden soll. |
+| Parameter		| Beschreibung |
+| ---------		| ------------ |
+| `uri`			| URL der zu herunterzuladenden Datei. |
+| `saveto`		| Verzeichnis, in welches die Datei heruntergeladen werden soll. |
+| `filename`	| *optional:* Dateiname für die heruntergeladene Datei. Falls nicht angegeben, wird der Dateiname aus `uri` entnommen. |
 
 ### `youtube`
 **Legacy.** Lädt ein einzelnes YouTube-Video der gegebenen id herunter.
@@ -80,7 +78,8 @@ Unterstützung für CakeCMS-Materialseiten.
 | `uri`			| URL der Hauptseite des CMS. |
 | `saveto`		| Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
 | `username`	| Benutzername im CMS. |
-| `password` oder alternativ `keyring_id` | Entweder `password` mit dem Kennwort zum in `username` angegebenen Benutzer in Klartext, oder einer Kennung, welche als Keyring zum Service `pythomat.<kennung>` zusammengesetzt wird.
+| `password`	| *alternativ zu `keyring_id`* <br> Kennwort zum in `username` angegebenen Benutzer in Klartext
+| `keyring_id`	| *alternativ zu `password`* <br> Kennung, welche zum Service `pythomat.<keyring_id>` zusammengesetzt wird. Sollte unter der Kennung kein Kennwort im System-Keyring vorhanden sein, so wird der Benutzer dazu aufgefordert eins einzugeben. Dieses wird im Keyring abgespeichert.
 | `fileext_whitelist`	| *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die heruntergeladen werden sollen.
 | `fileext_blacklist`	| *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die nicht heruntergeladen werden sollen.
 

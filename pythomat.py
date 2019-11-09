@@ -75,7 +75,7 @@ def downloadFromIni(inipath="pythomat.ini"):
         overwrite = ini.get(section, "overwrite", fallback=2)
         mode = ini.get(section, "mode")
         if mode == "single":
-            name = ini.get(section, "name", fallback="")
+            name = ini.get(section, "filename", fallback="")
             download(uri, name, saveto, overwrite)
         elif mode == "batch":
             pattern = ini.get(section, "pattern")
