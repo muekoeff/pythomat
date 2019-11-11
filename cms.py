@@ -22,6 +22,7 @@ def start(name, items):
     keyring_id = items["keyring_id"] if "keyring_id" in items else None
     fileext_whitelist = items["fileext_whitelist"] if "fileext_whitelist" in items else None
     fileext_blacklist = items["fileext_blacklist"] if "fileext_blacklist" in items else None
+    overwrite = items["overwrite"] if "overwrite" in items else 0
 
     if password is None and keyring_id is None:
         print("No credentials provided for {}!", name)
@@ -50,7 +51,7 @@ def start(name, items):
 
     uri_afterlogin = br.geturl()
     if "/students/view" not in uri_afterlogin and "/tutors/view" not in uri_afterlogin:
-        print("Login failed for {}. Expected to be redirected to '/students/view' or '/tutors/view', but url was {}".format(name, uri_afterlogin))
+        print("[Failed] Login failed for {}. Expected to be redirected to '/students/view' or '/tutors/view', but url was {}".format(name, uri_afterlogin))
         exit(1)
     else:
         print("Login successful for {}".format(name))
@@ -67,20 +68,20 @@ def start(name, items):
         fileext = downloadpath.split("/")[-1].split(".")[-1]
 
         if fileext_blacklist is not None and fileext in fileext_blacklist:
-            print("Ignored {} since its file extension is blacklisted".format(downloadpath))
+            print("[Ignored] {} since its file extension is blacklisted".format(downloadpath))
             continue
         if fileext_whitelist is not None and fileext not in fileext_whitelist:
-            print("Ignored {} since its file extension is not whitelisted".format(downloadpath))
+            print("[Ignored] {} since its file extension is not whitelisted".format(downloadpath))
             continue
 
         if downloadpath.startswith(uri):
-            download(br, downloadpath, "{} ({}).{}".format(filename, rev, fileext), saveto, False)
+            download(br, downloadpath, "{} ({}).{}".format(filename, rev, fileext), saveto, overwrite)
         else:
-            print("Ignored {} since it's an externally hosted file".format(downloadpath))
+            print("[Ignored] {} since it's an externally hosted file".format(downloadpath))
 
 
 # Downloads a single file form url to path and names it filename
-def download(br, url, filename="", saveto="", overwrite=True, suffix=""):
+def download(br, url, filename="", saveto="", overwrite=1, suffix=""):
     try:
         if filename == "":
             filename = url.split("/")[-1]
@@ -88,7 +89,7 @@ def download(br, url, filename="", saveto="", overwrite=True, suffix=""):
         do_download = True
         if not saveto.endswith("/"):
             saveto = saveto + "/"
-        if overwrite == False and os.path.isfile(saveto + filename):
+        if overwrite == 0 and os.path.isfile(saveto + filename):
             do_download = False
 
         if do_download:
@@ -96,6 +97,6 @@ def download(br, url, filename="", saveto="", overwrite=True, suffix=""):
             br.retrieve(url, saveto + filename + suffix)
             print("Downloaded {} succesfully".format(url))
         else:
-            print("{} exists already".format(url))
+            print("[Ignored] {} exists already".format(url))
     except Exception as ex:
-        print("Failed: {}, Exception {}".format(url, ex))
+        print("[Failed] {}, Error: {}".format(url, ex))

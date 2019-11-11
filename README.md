@@ -11,12 +11,18 @@ Der Pythomat ist leicht erweiterbar, klein und (relativ) schnell installiert. Er
 Python 3, sowie das Pakete Mechanize, und bei Verwendung des Moduls *cms* BeautifulSoup4 und Keyring, werden benötigt.
 
 # Installation
-- Python 3 von https://python.org/ herunterladen und installieren.
+- [Python 3](https://python.org/) installieren.
 - In der Konsole *`pip install mechanize`* eingeben.
-- Sollte das Modul [*cms*](#cms) gebraucht werden: In der Konsole *`pip install beautifulsoup4 keyring`* eingeben.
-- Einen Ordner *pythomat* anlegen.
-- Sollte der Modus [*youtube*](#youtube) gebraucht werden: [*youtube-dl*](https://ytdl-org.github.io/youtube-dl/) herunterladen und in den Ordner verschieben oder global installieren.
-- Dateien dieses Repos herunterladen und in den Ordner verschieben.
+- Sollte das Modul [*cms*](#cms-1) gebraucht werden:
+  - In der Konsole *`pip install beautifulsoup4 keyring`* eingeben.
+- In der Konsole `git clone https://github.com/muekoeff/pythomat.git && cd pythomat` eingeben; oder dieses Repo [herunterladen](https://github.com/muekoeff/pythomat/archive/master.zip) und in ein Verzeichnis entpacken.
+- Sollte der Modus [*youtube*](#youtube) gebraucht werden:
+  - [*youtube-dl*](https://ytdl-org.github.io/youtube-dl/) über den Paketmanager installieren.
+  - Oder *youtube-dl* herunterladen, dann die heruntergeladene Datei ins erstellte Verzeichnis verschieben.
+
+# Ausführung
+- Im Terminal `python3 pythomat.py` eintippen und <kbd>Enter</kbd> drücken.
+- Optional kann als Argument eine alternative \*.ini-Datei übergeben werden. Standardmäßig wird die *pythomat.ini* im Arbeitsverzeichnis eingelesen.
 
 # Konfiguration
 Pythomat benutzt die Standard-Bibliothek ConfigParser zum Parsen von ini-Dateien. Standardmäßig wird *pythomat.ini* verwendet.
@@ -29,17 +35,21 @@ Hier eine Beispieldatei, die ein einzelnes Skript herunterlädt.
 	uri = http://www.vorlesung.de/skript.pdf	
 
 ## Modi
-Mit dem Parameter `mode` kann zwischen den zur Verfügung stehenden Modi gewechselt werden. Folgende Modi stehen zur Verfügung: [`batch`](#batch), [`module`](#module), [`single`](#single), [`youtube`](#youtube)
+Mit dem Parameter `mode` kann zwischen den zur Verfügung stehenden Modi gewechselt werden. Folgende Modi stehen zur Verfügung: [`batch`](#batch), [`cms`](#cms), [`module`](#module), [`single`](#single), [`youtube`](#youtube)
 
 ### `batch`
 Durchsucht eine Seite nach Links und lädt alle diese Dateien herunter.
 
 #### Parameter
-| Parameter	| Beschreibung |
-| ---------	| ------------ |
-| `saveto`	| Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
-| `uri`		| URL, die nach Links durchsucht werden soll. |
-| `pattern`	| Regulärer Ausdruck, den der Link erfüllen muss, damit er heruntergeladen wird. |
+| Parameter		| Beschreibung |
+| ---------		| ------------ |
+| `saveto`		| Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
+| `uri`			| URL, die nach Links durchsucht werden soll. |
+| `pattern`		| Regulärer Ausdruck, den der Link erfüllen muss, damit er heruntergeladen wird. |
+| `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
+
+### `cms`
+Kurzform für einen Modulaufruf mit *cms* als Modul. Siehe [entsprechenden Abschnitt](#cms-1).
 
 ### `module`
 Lädt `<module>.py` und führt `<module>.start(section, items)` aus. `section` ist dabei der Name der aktuellen Konfiguration als String und `items` eine Liste an Tupeln, die die Einstellungen enthält. ([Auflistung der Module](#module-1))
@@ -48,7 +58,7 @@ Lädt `<module>.py` und führt `<module>.start(section, items)` aus. `section` i
 | Parameter	| Beschreibung |
 | ---------	| ------------ |
 | `module`	| Name des zu ladenden Moduls. (entspricht Dateinamen ohne `.py`-Dateiendung) |
-| *Abhänging von Modul*	| Module können weitere Parameter einführen.
+| *Abhängig von Modul*	| Module können weitere Parameter einführen.
 
 ### `single`
 Lädt eine einzelne Datei herunter, falls sie auf dem Server geändert wurde.
@@ -58,17 +68,19 @@ Lädt eine einzelne Datei herunter, falls sie auf dem Server geändert wurde.
 | `uri`			| URL der zu herunterzuladenden Datei. |
 | `saveto`		| Verzeichnis, in welches die Datei heruntergeladen werden soll. |
 | `filename`	| *optional:* Dateiname für die heruntergeladene Datei. Falls nicht angegeben, wird der Dateiname aus `uri` entnommen. |
+| `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
 
 ### `youtube`
 **Legacy.** Lädt ein einzelnes YouTube-Video der gegebenen id herunter.
 
-| Parameter	| Beschreibung |
-| ---------	| ------------ |
-| `saveto`	|  |
-| `uri`		|  |
+| Parameter		| Beschreibung |
+| ---------		| ------------ |
+| `saveto`		|  |
+| `uri`			|  |
+| `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
 
 ## Module
-Module werden mit dem Modus `mode = module` verwendet. Dazu muss in `module` der Name des zu ladenden Modus eingetragen werden. Weitere Module lassen sich schnell selbst erstellen. Folgende Module stehen zur Verfügung: [`cms`](#cms), [`prog2`](#prog2)
+Module werden mit dem Modus `mode = module` verwendet. Dazu muss in `module` der Name des zu ladenden Modus eingetragen werden. Weitere Module lassen sich schnell selbst erstellen. Folgende Module stehen zur Verfügung: [`cms`](#cms-1), [`prog2`](#prog2)
 
 ### `cms`
 Unterstützung für CakeCMS-Materialseiten.
@@ -78,10 +90,11 @@ Unterstützung für CakeCMS-Materialseiten.
 | `uri`			| URL der Hauptseite des CMS. |
 | `saveto`		| Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
 | `username`	| Benutzername im CMS. |
-| `password`	| *alternativ zu `keyring_id`* <br> Kennwort zum in `username` angegebenen Benutzer in Klartext
-| `keyring_id`	| *alternativ zu `password`* <br> Kennung, welche zum Service `pythomat.<keyring_id>` zusammengesetzt wird. Sollte unter der Kennung kein Kennwort im System-Keyring vorhanden sein, so wird der Benutzer dazu aufgefordert eins einzugeben. Dieses wird im Keyring abgespeichert.
-| `fileext_whitelist`	| *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die heruntergeladen werden sollen.
-| `fileext_blacklist`	| *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die nicht heruntergeladen werden sollen.
+| `password`	| *alternativ zu `keyring_id`* <br> Kennwort zum in `username` angegebenen Benutzer in Klartext. |
+| `keyring_id`	| *alternativ zu `password`* <br> Kennung, welche zum Service `pythomat.<keyring_id>` zusammengesetzt wird. |Sollte unter der Kennung kein Kennwort im System-Keyring vorhanden sein, so wird der Benutzer dazu aufgefordert eins einzugeben. Dieses wird im Keyring abgespeichert. |
+| `fileext_whitelist`	| *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die heruntergeladen werden sollen. |
+| `fileext_blacklist`	| *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die nicht heruntergeladen werden sollen. |
+| `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 0. |
 
 ### `prog2`	
 **Legacy.** Lädt die aktuellen Youtube-Videos der Vorlesung herunter.

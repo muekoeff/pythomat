@@ -10,7 +10,7 @@ from mechanize import Browser
 
 
 # Downloads a single file form url to path and names it filename
-def download(url, filename="", saveto="", overwrite=2, suffix=""):
+def download(url, filename="", saveto="", overwrite=1):
     try:
         if filename == "":
             filename = url.split("/")[-1]
@@ -18,43 +18,47 @@ def download(url, filename="", saveto="", overwrite=2, suffix=""):
         do_download = True
         if not saveto.endswith("/"):
             saveto = saveto + "/"
-        if overwrite == 2 and os.path.isfile(saveto + filename):
+        if overwrite == 1 and os.path.isfile(saveto + filename):
             br = Browser()
+            br.set_handle_robots(False)
             br.open(url)
             remote_time = time.strptime(br.response().info()["last-modified"], "%a, %d %b %Y %H:%M:%S GMT")
-            local_time = time.gmtime(os.stat(saveto + filename + suffix).st_mtime)
+            local_time = time.gmtime(os.stat(saveto + filename).st_mtime)
             do_download = (remote_time > local_time)
         elif overwrite == 0 and os.path.isfile(saveto + filename):
             do_download = False
 
         if do_download:
             br = Browser()
+            br.set_handle_robots(False)
             os.chdir(saveto)
-            br.retrieve(url, filename + suffix)
-            print("Downloaded " + url + " succesfully")
+            br.retrieve(url, saveto + filename)
+            print("Downloaded {} succesfully".format(url))
         else:
-            print(url + " exists already")
-    except:
-        print("Failed: " + url)
+            print("[Ignored] {} exists already".format(url))
+    except Exception as ex:
+        print("[Failed] {}, Error: {}".format(url, ex))
 
 
 # Downloads all given urls via download(...)
-def batchDownload(urls, overw=2):
+def batchDownload(urls, overw=1):
     for url in urls:
         download(url, overwrite=overw)
 
 
 # Downloads all files with links containing pattern on path to destpath
-def downloadAll(url, pattern="", saveto="", overwrite=2, suffix=""):
+def downloadAll(url, pattern="", saveto="", overwrite=1):
     br = Browser()
     br.open(url)
     for link in br.links(url_regex=pattern):
         if link.url.startswith("http://"):
-            download(link.url, "", saveto, overwrite, suffix)
+            download(link.url, "", saveto, overwrite)
+        elif link.url.startswith("https://"):
+            download(link.url, "", saveto, overwrite)
         elif link.url.startswith("/"):
-            download(link.base_url[:link.base_url.find("/", 8)] + link.url, "", saveto, overwrite, suffix)
+            download(link.base_url[:link.base_url.find("/", 8)] + link.url, "", saveto, overwrite)
         else:
-            download(link.base_url[:link.base_url.rfind("/") + 1] + link.url, "", saveto, overwrite, suffix)
+            download(link.base_url[:link.base_url.rfind("/") + 1] + link.url, "", saveto, overwrite)
 
 
 # Downloads YouTuve-Video with id to saveto and overwrites (or not)
@@ -70,19 +74,22 @@ def downloadFromIni(inipath="pythomat.ini"):
     ini = configparser.ConfigParser()
     ini.read(inipath)
     for section in ini.sections():
+        print("### Processing {} ###".format(section))
+
         uri = ini.get(section, "uri")
         saveto = ini.get(section, "saveto")
-        overwrite = ini.get(section, "overwrite", fallback=2)
         mode = ini.get(section, "mode")
         if mode == "single":
             name = ini.get(section, "filename", fallback="")
+            overwrite = ini.get(section, "overwrite", fallback=1)
             download(uri, name, saveto, overwrite)
         elif mode == "batch":
             pattern = ini.get(section, "pattern")
-            suff = ini.get(section, "suffix", fallback="")
-            downloadAll(uri, pattern, saveto, overwrite, suffix=suff)
+            overwrite = ini.get(section, "overwrite", fallback=1)
+            downloadAll(uri, pattern, saveto, overwrite)
         elif mode == "youtube":
-            downloadYoutube(uri, saveto, not overwrite == 1)
+            overwrite = ini.get(section, "overwrite", fallback=1)
+            downloadYoutube(uri, saveto, overwrite)
         elif mode == "cms":
             module = __import__("cms", globals=globals())
             module.start(section, ini.items(section))
