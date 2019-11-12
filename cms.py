@@ -1,3 +1,5 @@
+import urllib
+
 import keyring
 import os
 from urllib.parse import urljoin
@@ -64,7 +66,7 @@ def start(name: str, items: list):
         rev = rev_dom.getText().strip().replace(" ", "")
         downloadpath = urljoin(uri, filelink_dom.get("href"))
 
-        filename = "".join(downloadpath.split("/")[-1].split(".")[:-1]).replace("_", " ")
+        filename = urllib.parse.unquote("".join(downloadpath.split("/")[-1].split(".")[:-1]).replace("_", " "))
         fileext = downloadpath.split("/")[-1].split(".")[-1]
 
         if fileext_blacklist is not None and fileext in fileext_blacklist:
