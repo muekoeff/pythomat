@@ -9,7 +9,7 @@ import getpass
 http.client._MAXHEADERS = 1000
 
 
-def start(name, items):
+def start(name: str, items: list):
     items = dict(items)
 
     saveto = items["saveto"]
@@ -80,8 +80,8 @@ def start(name, items):
             print("[Ignored] {} since it's an externally hosted file".format(downloadpath))
 
 
-# Downloads a single file form url to path and names it filename
-def download(br, url, filename="", saveto="", overwrite=1, suffix=""):
+# @FIXME: Use download in pythomat.py
+def download(br: Browser, url: str, filename: str = "", saveto: str = "", overwrite: int = 1):
     try:
         if filename == "":
             filename = url.split("/")[-1]
@@ -94,7 +94,7 @@ def download(br, url, filename="", saveto="", overwrite=1, suffix=""):
 
         if do_download:
             os.chdir(saveto)
-            br.retrieve(url, saveto + filename + suffix)
+            br.retrieve(url, saveto + filename)
             print("Downloaded {} succesfully".format(url))
         else:
             print("[Ignored] {} exists already".format(url))

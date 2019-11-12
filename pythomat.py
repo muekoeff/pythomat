@@ -10,15 +10,15 @@ from mechanize import Browser
 
 
 # Downloads a single file form url to path and names it filename
-def download(url, filename="", saveto="", overwrite=1):
+def download(url: str, filename: str = "", saveto: str = "", overwrite: int = 1, checklastmodified: bool = True):
     try:
         if filename == "":
             filename = url.split("/")[-1]
             filename = filename.split("?")[0]
-        do_download = True
         if not saveto.endswith("/"):
             saveto = saveto + "/"
-        if overwrite == 1 and os.path.isfile(saveto + filename):
+
+        if overwrite == 1 and os.path.isfile(saveto + filename) and checklastmodified:
             br = Browser()
             br.set_handle_robots(False)
             br.open(url)
@@ -27,6 +27,8 @@ def download(url, filename="", saveto="", overwrite=1):
             do_download = (remote_time > local_time)
         elif overwrite == 0 and os.path.isfile(saveto + filename):
             do_download = False
+        else:
+            do_download = True
 
         if do_download:
             br = Browser()
@@ -40,20 +42,13 @@ def download(url, filename="", saveto="", overwrite=1):
         print("[Failed] {}, Error: {}".format(url, ex))
 
 
-# Downloads all given urls via download(...)
-def batchDownload(urls, overw=1):
-    for url in urls:
-        download(url, overwrite=overw)
-
-
-# Downloads all files with links containing pattern on path to destpath
-def downloadAll(url, pattern="", saveto="", overwrite=1):
+# Downloads all files with links containing pattern on path to saveto
+def downloadAll(url: str, pattern: str = "", saveto: str = "", overwrite: int = 1):
     br = Browser()
     br.open(url)
     for link in br.links(url_regex=pattern):
-        if link.url.startswith("http://"):
+        if link.url.startswith("http://") or link.url.startswith("https://"):
             download(link.url, "", saveto, overwrite)
-        elif link.url.startswith("https://"):
             download(link.url, "", saveto, overwrite)
         elif link.url.startswith("/"):
             download(link.base_url[:link.base_url.find("/", 8)] + link.url, "", saveto, overwrite)
@@ -63,14 +58,14 @@ def downloadAll(url, pattern="", saveto="", overwrite=1):
 
 # Downloads YouTuve-Video with id to saveto and overwrites (or not)
 def downloadYoutube(id, saveto="", overwrite=True):
-    output = "-o \"" + saveto + "%(title)s-%(id)s.%(ext)s\""
-    if overwrite or len(glob.glob(saveto + "*" + id + "*")) == 0:
-        url = "http://www.youtube.com/watch?v=" + id
-        subprocess.call("youtube-dl " + output + " \"" + url + " \"", shell=True)
+    output = "-o \"{}%(title)s-%(id)s.%(ext)s\"".format(saveto)
+    if overwrite or len(glob.glob("{}*{}*".format(saveto, id))) == 0:
+        url = "https://www.youtube.com/watch?v={}".format(id)
+        subprocess.call("youtube-dl {} \"{}\"".format(output, url), shell=True)
 
 
 # Parses .ini file and executes the given Downloads
-def downloadFromIni(inipath="pythomat.ini"):
+def downloadFromIni(inipath: str = "pythomat.ini"):
     ini = configparser.ConfigParser()
     ini.read(inipath)
     for section in ini.sections():
