@@ -3,14 +3,14 @@ import configparser
 import glob
 import os
 import subprocess
-import sys
 import time
+from argparse import ArgumentParser
 
 from mechanize import Browser
 
 
 # Downloads a single file form url to path and names it filename
-def download(url: str, filename: str = "", saveto: str = "", overwrite: int = 1, checklastmodified: bool = True):
+def download(url: str, createdirs: bool, overwrite: int = 1, filename: str = "", saveto: str = "", checklastmodified: bool = True):
     try:
         if filename == "":
             filename = url.split("/")[-1]
@@ -33,9 +33,13 @@ def download(url: str, filename: str = "", saveto: str = "", overwrite: int = 1,
         if do_download:
             br = Browser()
             br.set_handle_robots(False)
+
+            if createdirs and not os.path.exists(saveto):
+                os.makedirs(saveto)
+
             os.chdir(saveto)
-            br.retrieve(url, saveto + filename)
-            print("Downloaded {} succesfully".format(url))
+            print("Downloading {} as \"{}\" ...".format(url, filename))
+            br.retrieve(url, filename)
         else:
             print("[Ignored] {} exists already".format(url))
     except Exception as ex:
@@ -43,21 +47,20 @@ def download(url: str, filename: str = "", saveto: str = "", overwrite: int = 1,
 
 
 # Downloads all files with links containing pattern on path to saveto
-def downloadAll(url: str, pattern: str = "", saveto: str = "", overwrite: int = 1):
+def downloadAll(url: str, createdirs: bool, overwrite: int = 1, pattern: str = "", saveto: str = ""):
     br = Browser()
     br.open(url)
     for link in br.links(url_regex=pattern):
         if link.url.startswith("http://") or link.url.startswith("https://"):
-            download(link.url, "", saveto, overwrite)
-            download(link.url, "", saveto, overwrite)
+            download(link.url, createdirs, overwrite, "", saveto)
         elif link.url.startswith("/"):
-            download(link.base_url[:link.base_url.find("/", 8)] + link.url, "", saveto, overwrite)
+            download(link.base_url[:link.base_url.find("/", 8)] + link.url, createdirs, overwrite, "", saveto)
         else:
-            download(link.base_url[:link.base_url.rfind("/") + 1] + link.url, "", saveto, overwrite)
+            download(link.base_url[:link.base_url.rfind("/") + 1] + link.url, createdirs, overwrite, "", saveto)
 
 
 # Downloads YouTuve-Video with id to saveto and overwrites (or not)
-def downloadYoutube(id, saveto="", overwrite=True):
+def downloadYoutube(id, overwrite=True, saveto=""):
     output = "-o \"{}%(title)s-%(id)s.%(ext)s\"".format(saveto)
     if overwrite or len(glob.glob("{}*{}*".format(saveto, id))) == 0:
         url = "https://www.youtube.com/watch?v={}".format(id)
@@ -65,9 +68,10 @@ def downloadYoutube(id, saveto="", overwrite=True):
 
 
 # Parses .ini file and executes the given Downloads
-def downloadFromIni(inipath: str = "pythomat.ini"):
+def downloadFromIni(inipath: str, createdirs: bool):
     ini = configparser.ConfigParser()
     ini.read(inipath)
+
     for section in ini.sections():
         print("### Processing {} ###".format(section))
 
@@ -77,29 +81,33 @@ def downloadFromIni(inipath: str = "pythomat.ini"):
         if mode == "single":
             name = ini.get(section, "filename", fallback="")
             overwrite = ini.get(section, "overwrite", fallback=1)
-            download(uri, name, saveto, overwrite)
+            download(uri, createdirs, overwrite, name, saveto)
         elif mode == "batch":
             pattern = ini.get(section, "pattern")
             overwrite = ini.get(section, "overwrite", fallback=1)
-            downloadAll(uri, pattern, saveto, overwrite)
+            downloadAll(uri, createdirs, overwrite, pattern, saveto)
         elif mode == "youtube":
             overwrite = ini.get(section, "overwrite", fallback=1)
-            downloadYoutube(uri, saveto, overwrite)
-        elif mode == "cms":
-            module = __import__("cms", globals=globals())
-            module.start(section, ini.items(section))
-        elif mode == "module":
-            name = ini.get(section, "module")
+            downloadYoutube(uri, overwrite, saveto)
+        elif mode == "cms" or mode == "module":
+            name = "cms" if mode == "cms" else ini.get(section, "module")
             module = __import__(name, globals=globals())
-            module.start(section, ini.items(section))
+
+            items = dict(ini.items(section))
+            items["createdirs"] = createdirs
+            module.start(section, items)
         else:
             print("Mode '{}' unsupported".format(mode))
 
 
-# Main
-for arg in sys.argv[1:]:
-    if not arg.endswith(".ini"):
-        arg += ".ini"
-    downloadFromIni(arg)
-if len(sys.argv[1:]) < 1:
-    downloadFromIni()
+def main():
+    parser = ArgumentParser()
+    parser.add_argument("inipath", nargs="?")
+    parser.add_argument("--createdirs", help="Automatically create directories", action="store_true")
+    args = parser.parse_args()
+
+    downloadFromIni(args.inipath if args.inipath else "pythomat.ini", args.createdirs)
+
+
+if __name__ == "__main__":
+    main()

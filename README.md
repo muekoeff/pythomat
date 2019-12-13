@@ -23,6 +23,7 @@ Python 3, sowie das Pakete Mechanize, und bei Verwendung des Moduls *cms* Beauti
 # Ausführung
 - Im Terminal `python3 pythomat.py` eintippen und <kbd>Enter</kbd> drücken.
 - Optional kann als Argument eine alternative \*.ini-Datei übergeben werden. Standardmäßig wird die *pythomat.ini* im Arbeitsverzeichnis eingelesen.
+- Mit dem `--createdirs`-Flag können fehlende Verzeichnisse, in die heruntergeladen werden soll, automatisch erstellt werden.
 
 # Konfiguration
 Pythomat benutzt die Standard-Bibliothek ConfigParser zum Parsen von ini-Dateien. Standardmäßig wird *pythomat.ini* verwendet.
@@ -52,7 +53,7 @@ Durchsucht eine Seite nach Links und lädt alle diese Dateien herunter.
 Kurzform für einen Modulaufruf mit *cms* als Modul. Siehe [entsprechenden Abschnitt](#cms-1).
 
 ### `module`
-Lädt `<module>.py` und führt `<module>.start(section, items)` aus. `section` ist dabei der Name der aktuellen Konfiguration als String und `items` eine Liste an Tupeln, die die Einstellungen enthält. ([Auflistung der Module](#module-1))
+Lädt `<module>.py` und führt `<module>.start(section, items)` aus. `section` ist dabei der Name der aktuellen Konfiguration als String und `items` ein Dictionary, welches die Einstellungen enthält. ([Auflistung der Module](#module-1))
 
 #### Parameter
 | Parameter	| Beschreibung |

@@ -1,19 +1,17 @@
+import getpass
+import http.client
+import os
 import urllib
+from urllib.parse import urljoin
 
 import keyring
-import os
-from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from mechanize import Browser
-import http.client
-import getpass
 
 http.client._MAXHEADERS = 1000
 
 
-def start(name: str, items: list):
-    items = dict(items)
-
+def start(name: str, items: dict):
     saveto = items["saveto"]
     uri = items["uri"]
     uri = uri + ("/" if not uri.endswith("/") else "")
@@ -25,6 +23,7 @@ def start(name: str, items: list):
     fileext_whitelist = items["fileext_whitelist"] if "fileext_whitelist" in items else None
     fileext_blacklist = items["fileext_blacklist"] if "fileext_blacklist" in items else None
     overwrite = items["overwrite"] if "overwrite" in items else 0
+    createdirs = items["createdirs"] if "createdirs" in items else None
 
     if password is None and keyring_id is None:
         print("No credentials provided for {}!", name)
@@ -35,7 +34,9 @@ def start(name: str, items: list):
 
             if password is None:
                 print("Credentials 'pythomat.{}' not found in keyring".format(keyring_id))
-                print("You'll be prompted to enter you password for '{}' with the username '{}' in order to save it in your keyring as 'pythomat.{}'.".format(name, username, keyring_id))
+                print(
+                    "You'll be prompted to enter you password for '{}' with the username '{}' in order to save it in your keyring as 'pythomat.{}'.".format(
+                        name, username, keyring_id))
                 print("If you don't want to please terminate Pythomat and edit your *.ini-file.")
                 password = getpass.getpass("Password for {} keyring: ".format(name))
                 keyring.set_password("pythomat.{}".format(keyring_id), username, password)
@@ -53,7 +54,9 @@ def start(name: str, items: list):
 
     uri_afterlogin = br.geturl()
     if "/students/view" not in uri_afterlogin and "/tutors/view" not in uri_afterlogin:
-        print("[Failed] Login failed for {}. Expected to be redirected to '/students/view' or '/tutors/view', but url was {}".format(name, uri_afterlogin))
+        print(
+            "[Failed] Login failed for {}. Expected to be redirected to '/students/view' or '/tutors/view', but url was {}".format(
+                name, uri_afterlogin))
         exit(1)
     else:
         print("Login successful for {}".format(name))
@@ -77,13 +80,12 @@ def start(name: str, items: list):
             continue
 
         if downloadpath.startswith(uri):
-            download(br, downloadpath, "{} ({}).{}".format(filename, rev, fileext), saveto, overwrite)
+            download(br, downloadpath, createdirs, overwrite, "{} ({}).{}".format(filename, rev, fileext), saveto)
         else:
             print("[Ignored] {} since it's an externally hosted file".format(downloadpath))
 
 
-# @FIXME: Use download in pythomat.py
-def download(br: Browser, url: str, filename: str = "", saveto: str = "", overwrite: int = 1):
+def download(br: Browser, url: str, createdirs: bool, overwrite: int = 1, filename: str = "", saveto: str = ""):
     try:
         if filename == "":
             filename = url.split("/")[-1]
@@ -95,9 +97,13 @@ def download(br: Browser, url: str, filename: str = "", saveto: str = "", overwr
             do_download = False
 
         if do_download:
+            if createdirs and not os.path.exists(saveto):
+                os.makedirs(saveto)
+                print("Created path: {}".format(saveto))
+
             os.chdir(saveto)
-            br.retrieve(url, saveto + filename)
-            print("Downloaded {} succesfully".format(url))
+            print("Downloading {} as \"{}\" ...".format(url, filename))
+            br.retrieve(url, filename)
         else:
             print("[Ignored] {} exists already".format(url))
     except Exception as ex:
