@@ -13,17 +13,26 @@ Python 3, sowie das Pakete Mechanize, und bei Verwendung des Moduls *cms* Beauti
 # Installation
 - [Python 3](https://python.org/) installieren.
 - In der Konsole *`pip install mechanize`* eingeben.
-- Sollte das Modul [*cms*](#cms-1) gebraucht werden:
+- Sollte das Modul [*cms*](#cms-1) genutzt werden:
   - In der Konsole *`pip install beautifulsoup4 keyring`* eingeben.
 - In der Konsole `git clone https://github.com/muekoeff/pythomat.git && cd pythomat` eingeben; oder dieses Repo [herunterladen](https://github.com/muekoeff/pythomat/archive/master.zip) und in ein Verzeichnis entpacken.
-- Sollte der Modus [*youtube*](#youtube) gebraucht werden:
+- Sollte der Modus [*youtube*](#youtube) genutzt werden:
   - [*youtube-dl*](https://ytdl-org.github.io/youtube-dl/) über den Paketmanager installieren.
   - Oder *youtube-dl* herunterladen, dann die heruntergeladene Datei ins erstellte Verzeichnis verschieben.
+- Um serverseitige Änderungen an der *pythomat.ini* zu ignorieren, empfiehlt es sich, diese Datei von Git ignorieren zu lassen. Dies ist beispielsweise durch Ausführen des Befehls `echo "pythomat.ini" >> "$(git rev-parse --show-toplevel)/.git/info/exclude"` im lokalen Git-Repository-Verzeichnis möglich.
 
 # Ausführung
 - Im Terminal `python3 pythomat.py` eintippen und <kbd>Enter</kbd> drücken.
 - Optional kann als Argument eine alternative \*.ini-Datei übergeben werden. Standardmäßig wird die *pythomat.ini* im Arbeitsverzeichnis eingelesen.
-- Mit dem `--createdirs`-Flag können fehlende Verzeichnisse, in die heruntergeladen werden soll, automatisch erstellt werden.
+
+## Argumente
+| Parameter			| Beschreibung |
+| -----------------	| ------------ |
+| `--createdirs`	| Legt automatisch fehlende Verzeichnisse an, in die heruntergeladen werden soll. |
+| `-h`, `--help`	| Zeigt eine Liste aller unterstützten Argumente an. |
+| `-l`, `--list`	| Zeigt eine Liste aller vom Benutzer definierten Regeln an. |
+| `-r`, `--rules`	| Führt nur die mit Komma getrennt aufgezählten Regeln aus. Nicht aufgezählte Regeln werden ausgelassen. |
+| `-v`, `--version`	| Zeigt einen Link zum GitHub-Repository an. |
 
 # Konfiguration
 Pythomat benutzt die Standard-Bibliothek ConfigParser zum Parsen von ini-Dateien. Standardmäßig wird *pythomat.ini* verwendet.
@@ -32,8 +41,8 @@ Hier eine Beispieldatei, die ein einzelnes Skript herunterlädt.
 
 	[VorlesungsSkript]
 	mode = single
+	uri = http://www.vorlesung.de/skript.pdf
 	saveto = /irgendein/Pfad/
-	uri = http://www.vorlesung.de/skript.pdf	
 
 ## Modi
 Mit dem Parameter `mode` kann zwischen den zur Verfügung stehenden Modi gewechselt werden. Folgende Modi stehen zur Verfügung: [`batch`](#batch), [`cms`](#cms), [`module`](#module), [`single`](#single), [`youtube`](#youtube)
@@ -44,8 +53,8 @@ Durchsucht eine Seite nach Links und lädt alle diese Dateien herunter.
 #### Parameter
 | Parameter		| Beschreibung |
 | ---------		| ------------ |
-| `saveto`		| Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
 | `uri`			| URL, die nach Links durchsucht werden soll. |
+| `saveto`		| Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
 | `pattern`		| Regulärer Ausdruck, den der Link erfüllen muss, damit er heruntergeladen wird. |
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
 
@@ -76,8 +85,8 @@ Lädt eine einzelne Datei herunter, falls sie auf dem Server geändert wurde.
 
 | Parameter		| Beschreibung |
 | ---------		| ------------ |
-| `saveto`		|  |
 | `uri`			|  |
+| `saveto`		|  |
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
 
 ## Module

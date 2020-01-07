@@ -5,12 +5,16 @@ import os
 import subprocess
 import time
 from argparse import ArgumentParser
+from typing import List
 
 from mechanize import Browser
 
 
 # Downloads a single file form url to path and names it filename
-def download(url: str, createdirs: bool, overwrite: int = 1, filename: str = "", saveto: str = "", checklastmodified: bool = True):
+def download(url: str, createdirs: bool, overwrite: int = 1, filename: str = "", saveto: str = "",
+             checklastmodified: bool = True):
+    uptodate: bool = False
+
     try:
         if filename == "":
             filename = url.split("/")[-1]
@@ -25,6 +29,7 @@ def download(url: str, createdirs: bool, overwrite: int = 1, filename: str = "",
             remote_time = time.strptime(br.response().info()["last-modified"], "%a, %d %b %Y %H:%M:%S GMT")
             local_time = time.gmtime(os.stat(saveto + filename).st_mtime)
             do_download = (remote_time > local_time)
+            uptodate = True
         elif overwrite == 0 and os.path.isfile(saveto + filename):
             do_download = False
         else:
@@ -41,7 +46,10 @@ def download(url: str, createdirs: bool, overwrite: int = 1, filename: str = "",
             print("Downloading {} as \"{}\" ...".format(url, filename))
             br.retrieve(url, filename)
         else:
-            print("[Ignored] {} exists already".format(url))
+            if uptodate:
+                print("[Ignored] {} is already up to date".format(url))
+            else:
+                print("[Ignored] {} exists already".format(url))
     except Exception as ex:
         print("[Failed] {}, Error: {}".format(url, ex))
 
@@ -68,11 +76,14 @@ def downloadYoutube(id, overwrite=True, saveto=""):
 
 
 # Parses .ini file and executes the given Downloads
-def downloadFromIni(inipath: str, createdirs: bool):
-    ini = configparser.ConfigParser()
-    ini.read(inipath)
+def downloadFromIni(ini: configparser.ConfigParser, createdirs: bool, rules: str):
+    ruleList: List[str] = None if rules is None else rules.split(",")
 
     for section in ini.sections():
+        if ruleList is not None and section not in ruleList:
+            print("### Skipping {} ###".format(section))
+            continue
+
         print("### Processing {} ###".format(section))
 
         uri = ini.get(section, "uri")
@@ -100,13 +111,26 @@ def downloadFromIni(inipath: str, createdirs: bool):
             print("Mode '{}' unsupported".format(mode))
 
 
+def getConfigFromIni(inipath: str):
+    ini = configparser.ConfigParser()
+    ini.read(inipath)
+    return ini
+
+
 def main():
     parser = ArgumentParser()
     parser.add_argument("inipath", nargs="?")
-    parser.add_argument("--createdirs", help="Automatically create directories", action="store_true")
+    parser.add_argument("--createdirs", action="store_true", help="Automatically create directories")
+    parser.add_argument("-l", "--list", action="store_true", help="Display a list of all user-defined rules")
+    parser.add_argument("-r", "--rules", help="List of rules to run seperated by commas")
+    parser.add_argument("--version", action='version', version='%(prog)s 2.0 | https://github.com/muekoeff/pythomat')
     args = parser.parse_args()
 
-    downloadFromIni(args.inipath if args.inipath else "pythomat.ini", args.createdirs)
+    ini = getConfigFromIni(args.inipath if args.inipath else "pythomat.ini")
+    if args.list:
+        print(",".join(ini.sections()))
+    else:
+        downloadFromIni(ini, args.createdirs, args.rules)
 
 
 if __name__ == "__main__":
