@@ -1,6 +1,7 @@
 #!/usr/bin python3
 import configparser
 import glob
+import pathlib
 import os
 import subprocess
 import time
@@ -77,9 +78,11 @@ def downloadYoutube(id, overwrite=True, saveto=""):
 
 # Parses .ini file and executes the given Downloads
 def downloadFromIni(ini: configparser.ConfigParser, createdirs: bool, rules: str):
+    workingdir: str = pathlib.Path().absolute()
     ruleList: List[str] = None if rules is None else rules.split(",")
 
     for section in ini.sections():
+        os.chdir(workingdir)  # Reset working dir in case it has been changed
         if ruleList is not None and section not in ruleList:
             print("### Skipping {} ###".format(section))
             continue

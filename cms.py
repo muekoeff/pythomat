@@ -62,7 +62,13 @@ def start(name: str, items: dict):
         print("Login successful for {}".format(name))
 
     soup = br.open(uri_materials)
-    soup = BeautifulSoup(soup.read(), features="lxml")
+    soup = BeautifulSoup(soup.read(), "html.parser")
+
+    if createdirs and not os.path.exists(saveto):
+        os.makedirs(saveto)
+        print("Created path: {}".format(saveto))
+    
+    os.chdir(saveto)
     for row in soup.findAll("tr"):
         filelink_dom = row.find(lambda tag: tag.name == "a" and tag.find_parent("td", {"class": "name-cell"}))
         rev_dom = row.find("td", {"class": "rev-column"})
@@ -97,11 +103,6 @@ def download(br: Browser, url: str, createdirs: bool, overwrite: int = 1, filena
             do_download = False
 
         if do_download:
-            if createdirs and not os.path.exists(saveto):
-                os.makedirs(saveto)
-                print("Created path: {}".format(saveto))
-
-            os.chdir(saveto)
             print("Downloading {} as \"{}\" ...".format(url, filename))
             br.retrieve(url, filename)
         else:

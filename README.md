@@ -12,14 +12,18 @@ Python 3, sowie das Pakete Mechanize, und bei Verwendung des Moduls *cms* Beauti
 
 # Installation
 - [Python 3](https://python.org/) installieren.
-- In der Konsole *`pip install mechanize`* eingeben.
-- Sollte das Modul [*cms*](#cms-1) genutzt werden:
-  - In der Konsole *`pip install beautifulsoup4 keyring`* eingeben.
+- [pip](https://pip.pypa.io/en/stable/installing/) installieren. Dies dient zum einfachen Installieren der Abhängigkeiten.
 - In der Konsole `git clone https://github.com/muekoeff/pythomat.git && cd pythomat` eingeben; oder dieses Repo [herunterladen](https://github.com/muekoeff/pythomat/archive/master.zip) und in ein Verzeichnis entpacken.
+- Um serverseitige Änderungen an der *pythomat.ini* zu ignorieren, empfiehlt es sich, diese Datei von Git ignorieren zu lassen. Dies ist beispielsweise durch Ausführen des Befehls `echo "pythomat.ini" >> "$(git rev-parse --show-toplevel)/.git/info/exclude"` im lokalen Git-Repository-Verzeichnis möglich.
+- Mit `pip3 install .` Abhängigkeiten installieren. Dies ist auch manuell möglich, siehe den [folgenden Abschnitt](#manuelle-installation).
+
+## Manuelle Installation
+- In der Konsole *`pip3 install mechanize`* eingeben.
+- Sollte das Modul [*cms*](#cms-1) genutzt werden:
+  - In der Konsole *`pip3 install beautifulsoup4 keyring --upgrade keyrings.alt`* eingeben.
 - Sollte der Modus [*youtube*](#youtube) genutzt werden:
   - [*youtube-dl*](https://ytdl-org.github.io/youtube-dl/) über den Paketmanager installieren.
   - Oder *youtube-dl* herunterladen, dann die heruntergeladene Datei ins erstellte Verzeichnis verschieben.
-- Um serverseitige Änderungen an der *pythomat.ini* zu ignorieren, empfiehlt es sich, diese Datei von Git ignorieren zu lassen. Dies ist beispielsweise durch Ausführen des Befehls `echo "pythomat.ini" >> "$(git rev-parse --show-toplevel)/.git/info/exclude"` im lokalen Git-Repository-Verzeichnis möglich.
 
 # Ausführung
 - Im Terminal `python3 pythomat.py` eintippen und <kbd>Enter</kbd> drücken.
