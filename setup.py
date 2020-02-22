@@ -9,5 +9,5 @@ setup(
     author='µKöff, originally by yforster',
     author_email='muekoeff@muekev.de',
     description='',
-    install_requires=['beautifulsoup4', 'keyring', 'mechanize']
+    install_requires=['beautifulsoup4', 'keyring', 'keyrings.alt', 'mechanize']
 )
