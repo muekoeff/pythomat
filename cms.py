@@ -8,10 +8,12 @@ import keyring
 from bs4 import BeautifulSoup
 from mechanize import Browser
 
+from pythomat import Pythomat
+
 http.client._MAXHEADERS = 1000
 
 
-def start(name: str, items: dict):
+def start(section: str, items: dict, pythomat: Pythomat):
     saveto = items["saveto"]
     uri = items["uri"]
     uri = uri + ("/" if not uri.endswith("/") else "")
@@ -26,7 +28,7 @@ def start(name: str, items: dict):
     createdirs = items["createdirs"] if "createdirs" in items else None
 
     if password is None and keyring_id is None:
-        print("No credentials provided for {}!", name)
+        print("No credentials provided for {}!", section)
         exit(1)
     if password is None and keyring_id is not None:
         try:
@@ -36,12 +38,12 @@ def start(name: str, items: dict):
                 print("Credentials 'pythomat.{}' not found in keyring".format(keyring_id))
                 print(
                     "You'll be prompted to enter you password for '{}' with the username '{}' in order to save it in your keyring as 'pythomat.{}'.".format(
-                        name, username, keyring_id))
+                        section, username, keyring_id))
                 print("If you don't want to please terminate Pythomat and edit your *.ini-file.")
-                password = getpass.getpass("Password for {} keyring: ".format(name))
+                password = getpass.getpass("Password for {} keyring: ".format(section))
                 keyring.set_password("pythomat.{}".format(keyring_id), username, password)
         except keyring.errors.KeyringError as ex:
-            print("Login for {} failed. Keyring locked: {}".format(name, ex))
+            print("Login for {} failed. Keyring locked: {}".format(section, ex))
             exit(1)
 
     br = Browser()
@@ -56,10 +58,10 @@ def start(name: str, items: dict):
     if "/students/view" not in uri_afterlogin and "/tutors/view" not in uri_afterlogin:
         print(
             "[Failed] Login failed for {}. Expected to be redirected to '/students/view' or '/tutors/view', but url was {}".format(
-                name, uri_afterlogin))
+                section, uri_afterlogin))
         exit(1)
     else:
-        print("Login successful for {}".format(name))
+        print("Login successful for {}".format(section))
 
     soup = br.open(uri_materials)
     soup = BeautifulSoup(soup.read(), "html.parser")
@@ -86,12 +88,12 @@ def start(name: str, items: dict):
             continue
 
         if downloadpath.startswith(uri):
-            download(br, downloadpath, createdirs, overwrite, "{} ({}).{}".format(filename, rev, fileext), saveto)
+            download(pythomat, section, br, downloadpath, overwrite, "{} ({}).{}".format(filename, rev, fileext), saveto)
         else:
             print("[Ignored] {} since it's an externally hosted file".format(downloadpath))
 
 
-def download(br: Browser, url: str, createdirs: bool, overwrite: int = 1, filename: str = "", saveto: str = ""):
+def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite: int = 1, filename: str = "", saveto: str = ""):
     try:
         if filename == "":
             filename = url.split("/")[-1]
@@ -105,7 +107,9 @@ def download(br: Browser, url: str, createdirs: bool, overwrite: int = 1, filena
         if do_download:
             print("Downloading {} as \"{}\" ...".format(url, filename))
             br.retrieve(url, filename)
+            pythomat.reportFinished(section, filename)
         else:
             print("[Ignored] {} exists already".format(url))
     except Exception as ex:
         print("[Failed] {}, Error: {}".format(url, ex))
+        pythomat.reportFailed(section, filename)

@@ -66,7 +66,8 @@ Durchsucht eine Seite nach Links und lädt alle diese Dateien herunter.
 Kurzform für einen Modulaufruf mit *cms* als Modul. Siehe [entsprechenden Abschnitt](#cms-1).
 
 ### `module`
-Lädt `<module>.py` und führt `<module>.start(section, items)` aus. `section` ist dabei der Name der aktuellen Konfiguration als String und `items` ein Dictionary, welches die Einstellungen enthält. ([Auflistung der Module](#module-1))
+Lädt `<module>.py` und führt `<module>.start(section, items, pythomat)` aus. `section` ist dabei der Name der aktuellen Konfiguration als String, `items` ein Dictionary, welches die Einstellungen enthält, und `pythomat` eine Referenz auf das `Pythomat`-Objekt.
+Über die `pythomat`-Referenz sollte `reportFailed(section, filename)` und `reportFinished(section, filename)` aufgerufen werden, um im abschließenden Report aufgelistet zu werden. ([Auflistung der Module](#module-1))
 
 #### Parameter
 | Parameter	| Beschreibung |
