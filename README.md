@@ -99,7 +99,7 @@ Lädt eine einzelne Datei herunter, falls sie auf dem Server geändert wurde.
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
 
 ## Module
-Module werden mit dem Modus `mode = module` verwendet. Dazu muss in `module` der Name des zu ladenden Modus eingetragen werden. Weitere Module lassen sich schnell selbst erstellen. Folgende Module stehen zur Verfügung: [`cms`](#cms-1), [`prog2`](#prog2)
+Module werden mit dem Modus `mode = module` verwendet. Dazu muss in `module` der Name des zu ladenden Modus eingetragen werden. Weitere Module lassen sich schnell selbst erstellen. Folgendes Moduls stehs zur Verfügung: [`cms`](#cms-1).
 
 ### `cms`
 Unterstützung für CakeCMS-Materialseiten.
@@ -114,12 +114,3 @@ Unterstützung für CakeCMS-Materialseiten.
 | `fileext_whitelist`	| *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die heruntergeladen werden sollen. |
 | `fileext_blacklist`	| *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die nicht heruntergeladen werden sollen. |
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 0. |
-
-### `prog2`	
-**Legacy.** Lädt die aktuellen Youtube-Videos der Vorlesung herunter.
-
-| Parameter		| Beschreibung |
-| ---------		| ------------ |
-| `saveto`		|  |
-| `username`	|  |
-| `password`	| base64-kodiertes Kennwort zum in `username` angegebenen Benutzer. 
