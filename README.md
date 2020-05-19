@@ -60,6 +60,8 @@ Durchsucht eine Seite nach Links und lädt alle diese Dateien herunter.
 | `uri`			| URL, die nach Links durchsucht werden soll. |
 | `saveto`		| Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
 | `pattern`		| Regulärer Ausdruck, den der Link erfüllen muss, damit er heruntergeladen wird. |
+| `username`	| *optional:* Benutzername für HTTP-Authentifizierung. Nur zusammen mit `password` zu verwenden. |
+| `password`	| *optional:* Kennwort für HTTP-Authentifizierung. Nur zusammen mit `username` zu verwenden. |
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
 
 ### `cms`
@@ -83,6 +85,8 @@ Lädt eine einzelne Datei herunter, falls sie auf dem Server geändert wurde.
 | `uri`			| URL der zu herunterzuladenden Datei. |
 | `saveto`		| Verzeichnis, in welches die Datei heruntergeladen werden soll. |
 | `filename`	| *optional:* Dateiname für die heruntergeladene Datei. Falls nicht angegeben, wird der Dateiname aus `uri` entnommen. |
+| `username`	| *optional:* Benutzername für HTTP-Authentifizierung. Nur zusammen mit `password` zu verwenden. |
+| `password`	| *optional:* Kennwort für HTTP-Authentifizierung. Nur zusammen mit `username` zu verwenden. |
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
 
 ### `youtube`

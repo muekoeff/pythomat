@@ -1,8 +1,8 @@
 #!/usr/bin python3
 import configparser
 import glob
-import pathlib
 import os
+import pathlib
 import subprocess
 import time
 from argparse import ArgumentParser
@@ -16,9 +16,15 @@ class Pythomat:
     downloaded: List[Tuple[str, str]] = []
     failed: List[Tuple[str, str]] = []
 
+    @staticmethod
+    def setupBrowser(br: Browser, url: str, httpUsername: str, httpPassword: str):
+        if httpUsername is not None and httpPassword is not None:
+            br.set_handle_robots(False)
+            br.add_password(url, httpUsername, httpPassword)
+
     # Downloads a single file form url to path and names it filename
     def download(self, section: str, url: str, createdirs: bool, overwrite: int = 1, filename: str = "", saveto: str = "",
-                 checklastmodified: bool = True) -> bool:
+                 checklastmodified: bool = True, httpUsername: str = None, httpPassword: str = None) -> bool:
         uptodate: bool = False
 
         try:
@@ -30,7 +36,8 @@ class Pythomat:
 
             if overwrite == 1 and os.path.isfile(saveto + filename) and checklastmodified:
                 br = Browser()
-                br.set_handle_robots(False)
+                self.setupBrowser(br, url, httpUsername, httpPassword)
+
                 br.open(url)
                 remote_time = time.strptime(br.response().info()["last-modified"], "%a, %d %b %Y %H:%M:%S GMT")
                 local_time = time.gmtime(os.stat(saveto + filename).st_mtime)
@@ -43,7 +50,7 @@ class Pythomat:
 
             if do_download:
                 br = Browser()
-                br.set_handle_robots(False)
+                self.setupBrowser(br, url, httpUsername, httpPassword)
 
                 if createdirs and not os.path.exists(saveto):
                     os.makedirs(saveto)
@@ -65,16 +72,18 @@ class Pythomat:
         return False
 
     # Downloads all files with links containing pattern on path to saveto
-    def downloadAll(self, section: str, url: str, createdirs: bool, overwrite: int = 1, pattern: str = "", saveto: str = ""):
+    def downloadAll(self, section: str, url: str, createdirs: bool, overwrite: int = 1, pattern: str = "", saveto: str = "", httpUsername: str = None, httpPassword: str = None):
         br = Browser()
+        self.setupBrowser(br, url, httpUsername, httpPassword)
+
         br.open(url)
         for link in br.links(url_regex=pattern):
             if link.url.startswith("http://") or link.url.startswith("https://"):
-                self.download(section, link.url, createdirs, overwrite, "", saveto)
+                self.download(section, link.url, createdirs, overwrite, saveto=saveto, httpUsername=httpUsername, httpPassword=httpPassword)
             elif link.url.startswith("/"):
-                self.download(section, link.base_url[:link.base_url.find("/", 8)] + link.url, createdirs, overwrite, "", saveto)
+                self.download(section, link.base_url[:link.base_url.find("/", 8)] + link.url, createdirs, overwrite, saveto=saveto, httpUsername=httpUsername, httpPassword=httpPassword)
             else:
-                self.download(section, link.base_url[:link.base_url.rfind("/") + 1] + link.url, createdirs, overwrite, "", saveto)
+                self.download(section, link.base_url[:link.base_url.rfind("/") + 1] + link.url, createdirs, overwrite, saveto=saveto, httpUsername=httpUsername, httpPassword=httpPassword)
 
     # Downloads YouTuve-Video with id to saveto and overwrites (or not)
     def downloadYoutube(self, section: str, id: str, overwrite=True, saveto=""):
@@ -100,14 +109,17 @@ class Pythomat:
             uri = ini.get(section, "uri")
             saveto = ini.get(section, "saveto")
             mode = ini.get(section, "mode")
+            httpUsername = ini.get(section, "username", fallback=None)
+            httpPassword = ini.get(section, "password", fallback=None)
+
             if mode == "single":
                 name = ini.get(section, "filename", fallback="")
                 overwrite = ini.get(section, "overwrite", fallback=1)
-                self.download(section, uri, createdirs, overwrite, name, saveto)
+                self.download(section, uri, createdirs, overwrite, name, saveto, httpUsername=httpUsername, httpPassword=httpPassword)
             elif mode == "batch":
                 pattern = ini.get(section, "pattern")
                 overwrite = ini.get(section, "overwrite", fallback=1)
-                self.downloadAll(section, uri, createdirs, overwrite, pattern, saveto)
+                self.downloadAll(section, uri, createdirs, overwrite, pattern, saveto, httpUsername=httpUsername, httpPassword=httpPassword)
             elif mode == "youtube":
                 overwrite = ini.get(section, "overwrite", fallback=1)
                 self.downloadYoutube(section, uri, overwrite, saveto)
