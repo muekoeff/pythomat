@@ -24,7 +24,7 @@ def start(section: str, items: dict, pythomat: Pythomat):
     keyring_id = items["keyring_id"] if "keyring_id" in items else None
     fileext_whitelist = items["fileext_whitelist"] if "fileext_whitelist" in items else None
     fileext_blacklist = items["fileext_blacklist"] if "fileext_blacklist" in items else None
-    overwrite = items["overwrite"] if "overwrite" in items else 0
+    overwrite = int(items["overwrite"]) if "overwrite" in items else 0
     createdirs = items["createdirs"] if "createdirs" in items else None
 
     if password is None and keyring_id is None:

@@ -35,7 +35,7 @@ Python 3, sowie das Pakete Mechanize, und bei Verwendung des Moduls *cms* Beauti
 | `--createdirs`	| Legt automatisch fehlende Verzeichnisse an, in die heruntergeladen werden soll. |
 | `-h`, `--help`	| Zeigt eine Liste aller unterstützten Argumente an. |
 | `-l`, `--list`	| Zeigt eine Liste aller vom Benutzer definierten Regeln an. |
-| `-r`, `--rules`	| Führt nur die mit Komma getrennt aufgezählten Regeln aus. Nicht aufgezählte Regeln werden ausgelassen. |
+| `-r`, `--rules`	| Führt nur die mit Komma getrennt aufgezählten Regeln aus. Nicht aufgezählte Regeln werden ausgelassen. Mit dem Wert `all` werden alle Regeln ausgeführt, auch solche die normalerweise mit `skip` ausgelassen werden. |
 | `-v`, `--version`	| Zeigt einen Link zum GitHub-Repository an. |
 
 # Konfiguration
@@ -63,6 +63,7 @@ Durchsucht eine Seite nach Links und lädt alle diese Dateien herunter.
 | `username`	| *optional:* Benutzername für HTTP-Authentifizierung. Nur zusammen mit `password` zu verwenden. |
 | `password`	| *optional:* Kennwort für HTTP-Authentifizierung. Nur zusammen mit `username` zu verwenden. |
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
+| `skip`		| *optional:* Wenn auf 1 gesetzt, wird diese Regel ausschließlich dann ausgeführt, wenn sie im `--rules`-Argument aufgelistet ist. |
 
 ### `cms`
 Kurzform für einen Modulaufruf mit *cms* als Modul. Siehe [entsprechenden Abschnitt](#cms-1).
@@ -75,6 +76,7 @@ Lädt `<module>.py` und führt `<module>.start(section, items, pythomat)` aus. `
 | Parameter	| Beschreibung |
 | ---------	| ------------ |
 | `module`	| Name des zu ladenden Moduls. (entspricht Dateinamen ohne `.py`-Dateiendung) |
+| `skip`	| *optional:* Wenn auf 1 gesetzt, wird diese Regel ausschließlich dann ausgeführt, wenn sie im `--rules`-Argument aufgelistet ist. |
 | *Abhängig von Modul*	| Module können weitere Parameter einführen.
 
 ### `single`
@@ -88,6 +90,7 @@ Lädt eine einzelne Datei herunter, falls sie auf dem Server geändert wurde.
 | `username`	| *optional:* Benutzername für HTTP-Authentifizierung. Nur zusammen mit `password` zu verwenden. |
 | `password`	| *optional:* Kennwort für HTTP-Authentifizierung. Nur zusammen mit `username` zu verwenden. |
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
+| `skip`		| *optional:* Wenn auf 1 gesetzt, wird diese Regel ausschließlich dann ausgeführt, wenn sie im `--rules`-Argument aufgelistet ist. |
 
 ### `youtube`
 **Legacy.** Lädt ein einzelnes YouTube-Video der gegebenen id herunter.
@@ -99,7 +102,7 @@ Lädt eine einzelne Datei herunter, falls sie auf dem Server geändert wurde.
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
 
 ## Module
-Module werden mit dem Modus `mode = module` verwendet. Dazu muss in `module` der Name des zu ladenden Modus eingetragen werden. Weitere Module lassen sich schnell selbst erstellen. Folgendes Moduls stehs zur Verfügung: [`cms`](#cms-1).
+Module werden mit dem Modus `mode = module` verwendet. Dazu muss in `module` der Name des zu ladenden Modus eingetragen werden. Weitere Module lassen sich schnell selbst erstellen. Folgendes Modul stehs zur Verfügung: [`cms`](#cms-1).
 
 ### `cms`
 Unterstützung für CakeCMS-Materialseiten.

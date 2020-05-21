@@ -100,8 +100,14 @@ class Pythomat:
 
         for section in ini.sections():
             os.chdir(workingdir)  # Reset working dir in case it has been changed
-            if ruleList is not None and section not in ruleList:
+
+            if ruleList is not None and section not in ruleList and rules != "all":
                 print("### Skipping {} ###".format(section))
+                continue
+
+            skip = int(ini.get(section, "skip", fallback=0))
+            if ruleList is None and skip == 1:
+                print("### Skipping {} - must be started manually ###".format(section))
                 continue
 
             print("### Processing {} ###".format(section))
@@ -121,7 +127,7 @@ class Pythomat:
                 overwrite = ini.get(section, "overwrite", fallback=1)
                 self.downloadAll(section, uri, createdirs, overwrite, pattern, saveto, httpUsername=httpUsername, httpPassword=httpPassword)
             elif mode == "youtube":
-                overwrite = ini.get(section, "overwrite", fallback=1)
+                overwrite = int(ini.get(section, "overwrite", fallback=1))
                 self.downloadYoutube(section, uri, overwrite, saveto)
             elif mode == "cms" or mode == "module":
                 name = "cms" if mode == "cms" else ini.get(section, "module")
