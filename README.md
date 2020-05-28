@@ -35,6 +35,7 @@ Python 3, sowie das Pakete Mechanize, und bei Verwendung des Moduls *cms* Beauti
 | `--createdirs`	| Legt automatisch fehlende Verzeichnisse an, in die heruntergeladen werden soll. |
 | `-h`, `--help`	| Zeigt eine Liste aller unterstützten Argumente an. |
 | `-l`, `--list`	| Zeigt eine Liste aller vom Benutzer definierten Regeln an. |
+| `--log <Pfad>`	| Speichert eine Historie heruntergeladener Dateien im spezifizierten Pfad ab. |
 | `-r`, `--rules`	| Führt nur die mit Komma getrennt aufgezählten Regeln aus. Nicht aufgezählte Regeln werden ausgelassen. Mit dem Wert `all` werden alle Regeln ausgeführt, auch solche die normalerweise mit `skip` ausgelassen werden. |
 | `-v`, `--version`	| Zeigt einen Link zum GitHub-Repository an. |
 

@@ -6,7 +6,8 @@ import pathlib
 import subprocess
 import time
 from argparse import ArgumentParser
-from typing import List, Tuple
+from datetime import datetime
+from typing import List, Tuple, TextIO
 
 from mechanize import Browser
 
@@ -15,6 +16,13 @@ from mechanize import Browser
 class Pythomat:
     downloaded: List[Tuple[str, str]] = []
     failed: List[Tuple[str, str]] = []
+    logFile: TextIO = None
+
+    @staticmethod
+    def getConfigFromIni(inipath: str):
+        ini = configparser.ConfigParser()
+        ini.read(inipath)
+        return ini
 
     @staticmethod
     def setupBrowser(br: Browser, url: str, httpUsername: str, httpPassword: str):
@@ -22,9 +30,13 @@ class Pythomat:
             br.set_handle_robots(False)
             br.add_password(url, httpUsername, httpPassword)
 
+    def closeLog(self):
+        if self.logFile is not None:
+            self.logFile.close()
+
     # Downloads a single file form url to path and names it filename
     def download(self, section: str, url: str, createdirs: bool, overwrite: int = 1, filename: str = "", saveto: str = "",
-                 checklastmodified: bool = True, httpUsername: str = None, httpPassword: str = None) -> bool:
+                 checklastmodified: bool = True, httpUsername: str = None, httpPassword: str = None, logMessage: str = None) -> bool:
         uptodate: bool = False
 
         try:
@@ -59,6 +71,7 @@ class Pythomat:
                 print("Downloading {} as \"{}\" ...".format(url, filename))
                 br.retrieve(url, filename)
                 self.reportFinished(section, filename)
+                self.reportLog(section, filename, logMessage)
                 return True
             else:
                 if uptodate:
@@ -139,11 +152,9 @@ class Pythomat:
             else:
                 print("Mode '{}' unsupported".format(mode))
 
-    @staticmethod
-    def getConfigFromIni(inipath: str):
-        ini = configparser.ConfigParser()
-        ini.read(inipath)
-        return ini
+    def openLog(self, path: str):
+        if path is not None:
+            self.logFile = open(path, 'a')
 
     def printReport(self):
         print("### Report ###")
@@ -165,12 +176,17 @@ class Pythomat:
     def reportFinished(self, section: str, filename: str):
         self.downloaded.append((section, filename))
 
+    def reportLog(self, section: str, filename: str, message: str = None):
+        if self.logFile is not None:
+            self.logFile.write("{} [{}] {}: {}\n".format(datetime.now().isoformat(), section, filename, "Downloaded" if message is None else message))
+
 
 def main():
     parser = ArgumentParser()
     parser.add_argument("inipath", nargs="?")
     parser.add_argument("--createdirs", action="store_true", help="Automatically create directories")
     parser.add_argument("-l", "--list", action="store_true", help="Display a list of all user-defined rules")
+    parser.add_argument("--log", action="store", help="Logs history of downloads to specified path")
     parser.add_argument("-r", "--rules", help="List of rules to run seperated by commas")
     parser.add_argument("--version", action='version', version='%(prog)s 2.0 | https://github.com/muekoeff/pythomat')
     args = parser.parse_args()
@@ -180,8 +196,10 @@ def main():
         print(",".join(ini.sections()))
     else:
         pythomat = Pythomat()
+        pythomat.openLog(args.log)
         pythomat.downloadFromIni(ini, args.createdirs, args.rules)
         pythomat.printReport()
+        pythomat.closeLog()
 
 
 if __name__ == "__main__":

@@ -108,6 +108,7 @@ def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite:
             print("Downloading {} as \"{}\" ...".format(url, filename))
             br.retrieve(url, filename)
             pythomat.reportFinished(section, filename)
+            pythomat.reportLog(section, filename)
         else:
             print("[Ignored] {} exists already".format(url))
     except Exception as ex:
