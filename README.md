@@ -18,12 +18,18 @@ Python 3, sowie das Pakete Mechanize, und bei Verwendung des Moduls *cms* Beauti
 - Mit `pip3 install .` Abhängigkeiten installieren. Dies ist auch manuell möglich, siehe den [folgenden Abschnitt](#manuelle-installation).
 
 ## Manuelle Installation
-- In der Konsole *`pip3 install mechanize`* eingeben.
+- In der Konsole `pip3 install mechanize` eingeben.
 - Sollte das Modul [*cms*](#cms-1) genutzt werden:
-  - In der Konsole *`pip3 install beautifulsoup4 keyring --upgrade keyrings.alt`* eingeben.
+  - In der Konsole `pip3 install beautifulsoup4 keyring --upgrade keyrings.alt` eingeben.
 - Sollte der Modus [*youtube*](#youtube) genutzt werden:
   - [*youtube-dl*](https://ytdl-org.github.io/youtube-dl/) über den Paketmanager installieren.
   - Oder *youtube-dl* herunterladen, dann die heruntergeladene Datei ins erstellte Verzeichnis verschieben.
+
+## Updaten
+Zum Updaten kann Git verwendet werden. Einen automatisierten Mechanismus zum Updaten oder Überprüfen auf Updates gibt es nicht.
+- Ins Pythomat-Verzeichnis wechseln.
+- Sicherstellen, dass mittels `echo "pythomat.ini" >> "$(git rev-parse --show-toplevel)/.git/info/exclude"` die *pythomat.ini* von Updates ausgeschlossen wird (Nicht notwendig, falls diese unverändert ist).
+- `git pull`
 
 # Ausführung
 - Im Terminal `python3 pythomat.py` eintippen und <kbd>Enter</kbd> drücken.
@@ -37,12 +43,12 @@ Python 3, sowie das Pakete Mechanize, und bei Verwendung des Moduls *cms* Beauti
 | `-l`, `--list`	| Zeigt eine Liste aller vom Benutzer definierten Regeln an. |
 | `--log <Pfad>`	| Speichert eine Historie heruntergeladener Dateien im spezifizierten Pfad ab. |
 | `-r`, `--rules`	| Führt nur die mit Komma getrennt aufgezählten Regeln aus. Nicht aufgezählte Regeln werden ausgelassen. Mit dem Wert `all` werden alle Regeln ausgeführt, auch solche die normalerweise mit `skip` ausgelassen werden. |
-| `-v`, `--version`	| Zeigt einen Link zum GitHub-Repository an. |
+| `--version`		| Zeigt einen Link zum GitHub-Repository an. |
 
 # Konfiguration
 Pythomat benutzt die Standard-Bibliothek ConfigParser zum Parsen von ini-Dateien. Standardmäßig wird *pythomat.ini* verwendet.
 
-Hier eine Beispieldatei, die ein einzelnes Skript herunterlädt.
+Hier eine Beispieldatei, die ein einzelnes Skript herunterlädt. Der Name des Abschnitts, angegeben in einer separaten Zeile in eckigen Klammern, kann frei gewählt werden.
 
 	[VorlesungsSkript]
 	mode = single
