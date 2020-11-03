@@ -131,24 +131,31 @@ class Pythomat:
             httpUsername = ini.get(section, "username", fallback=None)
             httpPassword = ini.get(section, "password", fallback=None)
 
-            if mode == "single":
-                name = ini.get(section, "filename", fallback="")
-                overwrite = ini.get(section, "overwrite", fallback=1)
-                self.download(section, uri, createdirs, overwrite, name, saveto, httpUsername=httpUsername, httpPassword=httpPassword)
-            elif mode == "batch":
+            if mode == "batch":
                 pattern = ini.get(section, "pattern")
                 overwrite = ini.get(section, "overwrite", fallback=1)
                 self.downloadAll(section, uri, createdirs, overwrite, pattern, saveto, httpUsername=httpUsername, httpPassword=httpPassword)
-            elif mode == "youtube":
-                overwrite = int(ini.get(section, "overwrite", fallback=1))
-                self.downloadYoutube(section, uri, overwrite, saveto)
-            elif mode == "cms" or mode == "module":
+            elif mode == "cms" or mode == "moodle":
+                name = mode
+                module = __import__(name, globals=globals())
+
+                items = dict(ini.items(section))
+                items["createdirs"] = createdirs
+                module.start(section, items, self)
+            elif mode == "module":
                 name = "cms" if mode == "cms" else ini.get(section, "module")
                 module = __import__(name, globals=globals())
 
                 items = dict(ini.items(section))
                 items["createdirs"] = createdirs
                 module.start(section, items, self)
+            elif mode == "single":
+                name = ini.get(section, "filename", fallback="")
+                overwrite = ini.get(section, "overwrite", fallback=1)
+                self.download(section, uri, createdirs, overwrite, name, saveto, httpUsername=httpUsername, httpPassword=httpPassword)
+            elif mode == "youtube":
+                overwrite = int(ini.get(section, "overwrite", fallback=1))
+                self.downloadYoutube(section, uri, overwrite, saveto)
             else:
                 print("Mode '{}' unsupported".format(mode))
 

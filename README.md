@@ -8,7 +8,7 @@ Die Dateien als geteilten Ordner in der [Nextcloud-Instanz der Fachrichtung](htt
 Der Pythomat ist leicht erweiterbar, klein und (relativ) schnell installiert. Er ist in Python geschrieben, weil Cehmat, Javamat oder Essemelmat einfach dumm klingt. Und, weil Python plattformunabhängig ist. Und, weil der Autor es noch nicht konnte, als er das Skript begonnen hat.
 
 # Voraussetzungen
-Python 3, sowie das Pakete Mechanize, und bei Verwendung des Moduls *cms* BeautifulSoup4 und Keyring, werden benötigt.
+Python 3, sowie das Paket Mechanize, und bei Verwendung des Moduls [*cms*](#cms-1) bzw. [*moodle*](#moodle-1) BeautifulSoup4 und Keyring, werden benötigt.
 
 # Installation
 - [Python 3](https://python.org/) installieren.
@@ -16,17 +16,17 @@ Python 3, sowie das Pakete Mechanize, und bei Verwendung des Moduls *cms* Beauti
 - In der Konsole `git clone https://github.com/muekoeff/pythomat.git && cd pythomat` eingeben; oder dieses Repo [herunterladen](https://github.com/muekoeff/pythomat/archive/master.zip) und in ein Verzeichnis entpacken.
 - Um serverseitige Änderungen an der *pythomat.ini* zu ignorieren, empfiehlt es sich, diese Datei von Git ignorieren zu lassen. Dies ist beispielsweise durch Ausführen des Befehls `echo "pythomat.ini" >> "$(git rev-parse --show-toplevel)/.git/info/exclude"` im lokalen Git-Repository-Verzeichnis möglich.
 - Mit `pip3 install .` Abhängigkeiten installieren. Dies ist auch manuell möglich, siehe den [folgenden Abschnitt](#manuelle-installation).
-
-## Manuelle Installation
-- In der Konsole `pip3 install mechanize` eingeben.
-- Sollte das Modul [*cms*](#cms-1) genutzt werden:
-  - In der Konsole `pip3 install beautifulsoup4 keyring --upgrade keyrings.alt` eingeben.
 - Sollte der Modus [*youtube*](#youtube) genutzt werden:
   - [*youtube-dl*](https://ytdl-org.github.io/youtube-dl/) über den Paketmanager installieren.
   - Oder *youtube-dl* herunterladen, dann die heruntergeladene Datei ins erstellte Verzeichnis verschieben.
 
+## Manuelle Installation
+- In der Konsole `pip3 install mechanize` eingeben.
+- Sollte das Modul [*cms*](#cms-1) bzw. [*moodle*](#moodle-1) genutzt werden:
+  - In der Konsole `pip3 install beautifulsoup4 keyring --upgrade keyrings.alt` eingeben.
+
 ## Updaten
-Zum Updaten kann Git verwendet werden. Einen automatisierten Mechanismus zum Updaten oder Überprüfen auf Updates gibt es nicht.
+Zum Updaten kann Git verwendet werden. Einen automatisierten Mechanismus zum Updaten oder Überprüfen auf Updates gibt es nicht. Bei Bedarf kann das Projekt auf GitHub beobachtet werden.
 - Ins Pythomat-Verzeichnis wechseln.
 - Sicherstellen, dass mittels `echo "pythomat.ini" >> "$(git rev-parse --show-toplevel)/.git/info/exclude"` die *pythomat.ini* von Updates ausgeschlossen wird (Nicht notwendig, falls diese unverändert ist).
 - `git pull`
@@ -56,7 +56,7 @@ Hier eine Beispieldatei, die ein einzelnes Skript herunterlädt. Der Name des Ab
 	saveto = /irgendein/Pfad/
 
 ## Modi
-Mit dem Parameter `mode` kann zwischen den zur Verfügung stehenden Modi gewechselt werden. Folgende Modi stehen zur Verfügung: [`batch`](#batch), [`cms`](#cms), [`module`](#module), [`single`](#single), [`youtube`](#youtube)
+Mit dem Parameter `mode` kann zwischen den zur Verfügung stehenden Modi gewechselt werden. Folgende Modi stehen zur Verfügung: [`batch`](#batch), [`cms`](#cms), [`module`](#module), [`moodle`](#moodle), [`single`](#single), [`youtube`](#youtube)
 
 ### `batch`
 Durchsucht eine Seite nach Links und lädt alle diese Dateien herunter.
@@ -74,6 +74,9 @@ Durchsucht eine Seite nach Links und lädt alle diese Dateien herunter.
 
 ### `cms`
 Kurzform für einen Modulaufruf mit *cms* als Modul. Siehe [entsprechenden Abschnitt](#cms-1).
+
+### `moodle`
+Kurzform für einen Modulaufruf mit *moodle* als Modul. Siehe [entsprechenden Abschnitt](#moodle-1).
 
 ### `module`
 Lädt `<module>.py` und führt `<module>.start(section, items, pythomat)` aus. `section` ist dabei der Name der aktuellen Konfiguration als String, `items` ein Dictionary, welches die Einstellungen enthält, und `pythomat` eine Referenz auf das `Pythomat`-Objekt.
@@ -109,7 +112,7 @@ Lädt eine einzelne Datei herunter, falls sie auf dem Server geändert wurde.
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
 
 ## Module
-Module werden mit dem Modus `mode = module` verwendet. Dazu muss in `module` der Name des zu ladenden Modus eingetragen werden. Weitere Module lassen sich schnell selbst erstellen. Folgendes Modul stehs zur Verfügung: [`cms`](#cms-1).
+Module werden mit dem Modus `mode = module` verwendet. Dazu muss in `module` der Name des zu ladenden Modus eingetragen werden. Weitere Module lassen sich schnell selbst erstellen. Folgendes Modul stehen zur Verfügung: [`cms`](#cms-1), [`moodle`](#moodle-1).
 
 ### `cms`
 Unterstützung für CakeCMS-Materialseiten.
@@ -123,4 +126,16 @@ Unterstützung für CakeCMS-Materialseiten.
 | `keyring_id`	| *alternativ zu `password`* <br> Kennung, welche zum Service `pythomat.<keyring_id>` zusammengesetzt wird. |Sollte unter der Kennung kein Kennwort im System-Keyring vorhanden sein, so wird der Benutzer dazu aufgefordert eins einzugeben. Dieses wird im Keyring abgespeichert. |
 | `fileext_whitelist`	| *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die heruntergeladen werden sollen. |
 | `fileext_blacklist`	| *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die nicht heruntergeladen werden sollen. |
+| `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 0. |
+
+### `moodle`
+Unterstützung für Moodle-Instanzen. Momentan werden ausschließlich PDFs unterstützt.
+
+| Parameter		| Beschreibung |
+| ---------		| ------------ |
+| `uri`			| URL der Hauptseite der Veranstaltung auf Moodle. |
+| `saveto`		| Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
+| `username`	| Benutzername in der Moodle-Instanz. |
+| `password`	| *alternativ zu `keyring_id`* <br> Kennwort zum in `username` angegebenen Benutzer in Klartext. |
+| `keyring_id`	| *alternativ zu `password`* <br> Kennung, welche zum Service `pythomat.<keyring_id>` zusammengesetzt wird. |Sollte unter der Kennung kein Kennwort im System-Keyring vorhanden sein, so wird der Benutzer dazu aufgefordert eins einzugeben. Dieses wird im Keyring abgespeichert. |
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 0. |
