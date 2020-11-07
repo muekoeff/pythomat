@@ -129,7 +129,7 @@ Unterstützung für CakeCMS-Materialseiten.
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 0. |
 
 ### `moodle`
-Unterstützung für Moodle-Instanzen. Momentan werden ausschließlich PDFs unterstützt.
+Unterstützung für Moodle-Instanzen.
 
 | Parameter		| Beschreibung |
 | ---------		| ------------ |
@@ -138,4 +138,5 @@ Unterstützung für Moodle-Instanzen. Momentan werden ausschließlich PDFs unter
 | `username`	| Benutzername in der Moodle-Instanz. |
 | `password`	| *alternativ zu `keyring_id`* <br> Kennwort zum in `username` angegebenen Benutzer in Klartext. |
 | `keyring_id`	| *alternativ zu `password`* <br> Kennung, welche zum Service `pythomat.<keyring_id>` zusammengesetzt wird. |Sollte unter der Kennung kein Kennwort im System-Keyring vorhanden sein, so wird der Benutzer dazu aufgefordert eins einzugeben. Dieses wird im Keyring abgespeichert. |
+| `fileext_whitelist`	| Mit Leerzeichen getrennte Auflistung an Dateiendungen, die heruntergeladen werden sollen. Für mp4 ist zu beachten, dass `mpeg mp4` in die Auflistung aufgenommen werden muss. |
 | `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 0. |

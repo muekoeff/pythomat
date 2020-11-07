@@ -1,6 +1,7 @@
 import getpass
 import http.client
 import os
+import sys
 import urllib
 from urllib.parse import urljoin
 
@@ -28,7 +29,7 @@ def start(section: str, items: dict, pythomat: Pythomat):
     createdirs = items["createdirs"] if "createdirs" in items else None
 
     if password is None and keyring_id is None:
-        print("No credentials provided for {}!", section)
+        print("No credentials provided for {}!".format(section), file=sys.stderr)
         exit(1)
     if password is None and keyring_id is not None:
         try:
@@ -43,7 +44,7 @@ def start(section: str, items: dict, pythomat: Pythomat):
                 password = getpass.getpass("Password for {} keyring: ".format(section))
                 keyring.set_password("pythomat.{}".format(keyring_id), username, password)
         except keyring.errors.KeyringError as ex:
-            print("Login for {} failed. Keyring locked: {}".format(section, ex))
+            print("Login for {} failed. Keyring locked: {}".format(section, ex), file=sys.stderr)
             exit(1)
 
     br = Browser()
@@ -58,7 +59,7 @@ def start(section: str, items: dict, pythomat: Pythomat):
     if "/students/view" not in uri_afterlogin and "/tutors/view" not in uri_afterlogin:
         print(
             "[Failed] Login failed for {}. Expected to be redirected to '/students/view' or '/tutors/view', but url was {}".format(
-                section, uri_afterlogin))
+                section, uri_afterlogin), file=sys.stderr)
         exit(1)
     else:
         print("Login successful for {}".format(section))
@@ -112,5 +113,5 @@ def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite:
         else:
             print("[Ignored] {} exists already".format(url))
     except Exception as ex:
-        print("[Failed] {}, Error: {}".format(url, ex))
+        print("[Failed] {}, Error: {}".format(url, ex), file=sys.stderr)
         pythomat.reportFailed(section, filename)

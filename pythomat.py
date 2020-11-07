@@ -4,6 +4,7 @@ import glob
 import os
 import pathlib
 import subprocess
+import sys
 import time
 from argparse import ArgumentParser
 from datetime import datetime
@@ -79,7 +80,7 @@ class Pythomat:
                 else:
                     print("[Ignored] {} exists already".format(url))
         except Exception as ex:
-            print("[Failed] {}, Error: {}".format(url, ex))
+            print("[Failed] {}, Error: {}".format(url, ex), file=sys.stderr)
             self.reportFailed(section, filename)
 
         return False
@@ -157,7 +158,7 @@ class Pythomat:
                 overwrite = int(ini.get(section, "overwrite", fallback=1))
                 self.downloadYoutube(section, uri, overwrite, saveto)
             else:
-                print("Mode '{}' unsupported".format(mode))
+                print("Mode '{}' unsupported".format(mode), file=sys.stderr)
 
     def openLog(self, path: str):
         if path is not None:

@@ -2,8 +2,10 @@ import getpass
 import http.client
 import os
 import re
+import sys
 import urllib
 from urllib.parse import urljoin
+from typing import List, Tuple
 
 import keyring
 from bs4 import BeautifulSoup
@@ -13,6 +15,20 @@ from pythomat import Pythomat
 
 http.client._MAXHEADERS = 1000
 
+
+def classifyRessource(iconScr: str, fileext_whitelist: List[str]) -> Tuple[str, int]:
+	# Detect ressource type from icon (LOL). Moodle HTML-output is pretty ugly and seems to provide no better way for detection
+	if "/choicegroup" in iconScr:
+		return ("choicegroup", 0)
+	elif "/folder" in iconScr:
+		return ("folder", 2)
+	elif "/forum" in iconScr:
+		return ("forum", 0)
+	else:
+		for fileext in fileext_whitelist:
+			if "/{}-".format(fileext) in iconScr:
+				return (fileext, 1)
+		return None
 
 def start(section: str, items: dict, pythomat: Pythomat):
 	saveto = items["saveto"]
@@ -24,12 +40,17 @@ def start(section: str, items: dict, pythomat: Pythomat):
 	password = items["password"] if "password" in items else None
 	keyring_id = items["keyring_id"] if "keyring_id" in items else None
 	fileext_whitelist = items["fileext_whitelist"] if "fileext_whitelist" in items else None
-	fileext_blacklist = items["fileext_blacklist"] if "fileext_blacklist" in items else None
 	overwrite = int(items["overwrite"]) if "overwrite" in items else 0
 	createdirs = items["createdirs"] if "createdirs" in items else None
 
+	if fileext_whitelist is None:
+		fileext_whitelist = ["mpeg", "mp4", "pdf", "png"]
+		print("[Warn] No whitelist provided for {}! Due to limitations of Moodle it's highly recommended to provide a whitelist. Defaulted to `fileext_whitelist = mpeg mp4 pdf png`".format(section), file=sys.stderr)
+	else:
+		fileext_whitelist = fileext_whitelist.split(" ")
+
 	if password is None and keyring_id is None:
-		print("No credentials provided for {}!", section)
+		print("No credentials provided for {}!".format(section), file=sys.stderr)
 		exit(1)
 	if password is None and keyring_id is not None:
 		try:
@@ -44,7 +65,7 @@ def start(section: str, items: dict, pythomat: Pythomat):
 				password = getpass.getpass("Password for {} keyring: ".format(section))
 				keyring.set_password("pythomat.{}".format(keyring_id), username, password)
 		except keyring.errors.KeyringError as ex:
-			print("Login for {} failed. Keyring locked: {}".format(section, ex))
+			print("Login for {} failed. Keyring locked: {}".format(section, ex), file=sys.stderr)
 			exit(1)
 
 	br = Browser()
@@ -57,42 +78,71 @@ def start(section: str, items: dict, pythomat: Pythomat):
 
 	uri_afterlogin = br.geturl()
 	if "/login" in uri_afterlogin:
-		print("[Failed] Login failed for {}. Url was {}".format(section, uri_afterlogin))
+		print("[Failed] Login failed for {}. Url was {}".format(section, uri_afterlogin), file=sys.stderr)
 		exit(1)
 	else:
 		print("Login successful for {}".format(section))
-
-	soup = br.open(uri_materials)
-	soup = BeautifulSoup(soup.read(), "html.parser")
 
 	if createdirs and not os.path.exists(saveto):
 		os.makedirs(saveto)
 		print("Created path: {}".format(saveto))
 	
 	os.chdir(saveto)
+	scanPage(br, uri_materials, saveto, fileext_whitelist, pythomat, section, overwrite)
+			
+
+def scanPage(br: Browser, uri_materials: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int):
+	soup = br.open(uri_materials)
+	soup = BeautifulSoup(soup.read(), "html.parser")
+	
+	os.chdir(saveto)
 
 	icons = soup.select(".activityinstance .activityicon")
 	for icon in icons:
-		if "/pdf-" not in icon.get("src"):
-			continue
+		ressourceClassification = classifyRessource(icon.get("src"), fileext_whitelist)
 
-		filelink_dom = icon.parent
-		downloadpath = filelink_dom.get("href")
+		if ressourceClassification is None:
+			print("[Ignored] Since its icon could not be classified: {}".format(icon.get("src")))
+		elif ressourceClassification[1] == 1:	# Download
+			filelink_dom = icon.parent
+			downloadpath = filelink_dom.get("href")
+			downloadFromRawUrl(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto)
+		elif ressourceClassification[1] == 2:	# Folder
+			filelink_dom = icon.parent
+			downloadpath = filelink_dom.get("href")
+			scanSubPage(br, downloadpath, saveto, fileext_whitelist, pythomat, section, overwrite)
+		else:	# Don't download | ressourceClassification[1] == 0:
+			print("[Ignored] Since its icon is not whitelisted: {}".format(icon.get("src")))
 
-		response = br.open(downloadpath)
-		actualdownloadpath = response.geturl()
-		filename = urllib.parse.unquote("".join(actualdownloadpath.split("/")[-1].split(".")[:-1]).replace("_", " "))
-		fileext = re.sub(r"\?.*", "", actualdownloadpath.split("/")[-1].split(".")[-1])
+def scanSubPage(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int):
+	soup = br.open(url)
+	soup = BeautifulSoup(soup.read(), "html.parser")
 
-		if fileext_blacklist is not None and fileext in fileext_blacklist:
-			print("[Ignored] {} since its file extension is blacklisted".format(downloadpath))
-			continue
-		if fileext_whitelist is not None and fileext not in fileext_whitelist:
-			print("[Ignored] {} since its file extension is not whitelisted".format(downloadpath))
-			continue
+	icons = soup.select(".fp-filename-icon .icon")
+	for icon in icons:
+		ressourceClassification = classifyRessource(icon.get("src"), fileext_whitelist)
 
-		download(pythomat, section, br, downloadpath, overwrite, "{}.{}".format(filename, fileext), saveto)
+		if ressourceClassification is None:
+			print("[Ignored] Since its icon could not be classified: {}".format(icon.get("src")))
+		elif ressourceClassification[1] == 1:	# Download
+			filelink_dom = icon.parent.parent
+			downloadpath = filelink_dom.get("href")
+			downloadFromRawUrl(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto)
+		else:	# Don't download | ressourceClassification[1] == 0:
+			print("[Ignored] Since its icon is not whitelisted: {}".format(icon.get("src")))
 
+
+def downloadFromRawUrl(href: str, pythomat: Pythomat, section: str, br: Browser, fileext_whitelist, overwrite: int = 1, saveto: str = ""):
+	response = br.open(href)
+	actualdownloadpath = response.geturl()
+	filename = urllib.parse.unquote("".join(actualdownloadpath.split("/")[-1].split(".")[:-1]).replace("_", " "))
+	fileext = re.sub(r"\?.*", "", actualdownloadpath.split("/")[-1].split(".")[-1])
+
+	if fileext_whitelist is not None and fileext not in fileext_whitelist:
+		print("[Ignored] {} since its file extension is not whitelisted".format(href))
+		return
+
+	download(pythomat, section, br, href, overwrite, "{}.{}".format(filename, fileext), saveto)
 
 def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite: int = 1, filename: str = "", saveto: str = ""):
 	try:
@@ -113,5 +163,5 @@ def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite:
 		else:
 			print("[Ignored] {} exists already".format(url))
 	except Exception as ex:
-		print("[Failed] {}, Error: {}".format(url, ex))
+		print("[Failed] {}, Error: {}".format(url, ex), file=sys.stderr)
 		pythomat.reportFailed(section, filename)
