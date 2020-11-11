@@ -18,7 +18,9 @@ http.client._MAXHEADERS = 1000
 
 def classifyRessource(iconScr: str, fileext_whitelist: List[str]) -> Tuple[str, int]:
 	# Detect ressource type from icon (LOL). Moodle HTML-output is pretty ugly and seems to provide no better way for detection
-	if "/choicegroup" in iconScr:
+	if "/assign" in iconScr:
+		return ("assignment", 3)
+	elif "/choicegroup" in iconScr:
 		return ("choicegroup", 0)
 	elif "/folder" in iconScr:
 		return ("folder", 2)
@@ -26,7 +28,7 @@ def classifyRessource(iconScr: str, fileext_whitelist: List[str]) -> Tuple[str, 
 		return ("forum", 0)
 	else:
 		for fileext in fileext_whitelist:
-			if "/{}-".format(fileext) in iconScr:
+			if "/{}".format(fileext) in iconScr:
 				return (fileext, 1)
 		return None
 
@@ -111,6 +113,27 @@ def scanPage(br: Browser, uri_materials: str, saveto: str, fileext_whitelist: Li
 			filelink_dom = icon.parent
 			downloadpath = filelink_dom.get("href")
 			scanSubPage(br, downloadpath, saveto, fileext_whitelist, pythomat, section, overwrite)
+		elif ressourceClassification[1] == 3:	# Folder
+			filelink_dom = icon.parent
+			downloadpath = filelink_dom.get("href")
+			scanAssignmentPage(br, downloadpath, saveto, fileext_whitelist, pythomat, section, overwrite)
+		else:	# Don't download | ressourceClassification[1] == 0:
+			print("[Ignored] Since its icon is not whitelisted: {}".format(icon.get("src")))
+
+def scanAssignmentPage(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int):
+	soup = br.open(url)
+	soup = BeautifulSoup(soup.read(), "html.parser")
+
+	icons = soup.select("#intro div > .icon")
+	for icon in icons:
+		ressourceClassification = classifyRessource(icon.get("src"), fileext_whitelist)
+
+		if ressourceClassification is None:
+			print("[Ignored] Since its icon could not be classified: {}".format(icon.get("src")))
+		elif ressourceClassification[1] == 1:	# Download
+			filelink_dom = icon.parent.parent.find("a")
+			downloadpath = filelink_dom.get("href")
+			downloadFromRawUrl(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto)
 		else:	# Don't download | ressourceClassification[1] == 0:
 			print("[Ignored] Since its icon is not whitelisted: {}".format(icon.get("src")))
 
