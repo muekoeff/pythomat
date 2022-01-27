@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from mechanize import Browser
 
 from pythomat import Pythomat
+from cms import download
 
 http.client._MAXHEADERS = 1000
 
@@ -34,6 +35,8 @@ def classifyRessource(iconScr: str, fileext_whitelist: List[str]) -> Tuple[str, 
 
 def start(section: str, items: dict, pythomat: Pythomat):
 	saveto = items["saveto"]
+	detect = items["password"] if "detect" in items else items["saveto"]
+	detect_recursive = items["detect_recursive"] if "detect_recursive" in items else False
 	uri = items["uri"]
 	uri = uri + ("/" if not uri.endswith("/") else "")
 	uri_materials = uri + "materials"
@@ -90,10 +93,10 @@ def start(section: str, items: dict, pythomat: Pythomat):
 		print("Created path: {}".format(saveto))
 	
 	os.chdir(saveto)
-	scanPage(br, uri_materials, saveto, fileext_whitelist, pythomat, section, overwrite)
+	scanPage(br, uri_materials, saveto, fileext_whitelist, pythomat, section, overwrite, detect, detect_recursive)
 			
 
-def scanPage(br: Browser, uri_materials: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int):
+def scanPage(br: Browser, uri_materials: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int, detect: str, detect_recursive: bool):
 	soup = br.open(uri_materials)
 	soup = BeautifulSoup(soup.read(), "html.parser")
 	
@@ -108,7 +111,7 @@ def scanPage(br: Browser, uri_materials: str, saveto: str, fileext_whitelist: Li
 		elif ressourceClassification[1] == 1:	# Download
 			filelink_dom = icon.parent
 			downloadpath = filelink_dom.get("href")
-			downloadFromRawUrl(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto)
+			downloadFromRawUrl(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive)
 		elif ressourceClassification[1] == 2:	# Folder
 			filelink_dom = icon.parent
 			downloadpath = filelink_dom.get("href")
@@ -137,7 +140,7 @@ def scanAssignmentPage(br: Browser, url: str, saveto: str, fileext_whitelist: Li
 		else:	# Don't download | ressourceClassification[1] == 0:
 			print("[Ignored] Since its icon is not whitelisted: {}".format(icon.get("src")))
 
-def scanSubPage(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int):
+def scanSubPage(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int, detect: str, detect_recursive: bool):
 	soup = br.open(url)
 	soup = BeautifulSoup(soup.read(), "html.parser")
 
@@ -150,12 +153,12 @@ def scanSubPage(br: Browser, url: str, saveto: str, fileext_whitelist: List[str]
 		elif ressourceClassification[1] == 1:	# Download
 			filelink_dom = icon.parent.parent
 			downloadpath = filelink_dom.get("href")
-			downloadFromRawUrl(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto)
+			downloadFromRawUrl(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive)
 		else:	# Don't download | ressourceClassification[1] == 0:
 			print("[Ignored] Since its icon is not whitelisted: {}".format(icon.get("src")))
 
 
-def downloadFromRawUrl(href: str, pythomat: Pythomat, section: str, br: Browser, fileext_whitelist, overwrite: int = 1, saveto: str = ""):
+def downloadFromRawUrl(href: str, pythomat: Pythomat, section: str, br: Browser, fileext_whitelist, overwrite: int, saveto: str, detect: str, detect_recursive: bool):
 	response = br.open(href)
 	actualdownloadpath = response.geturl()
 	filename = urllib.parse.unquote("".join(actualdownloadpath.split("/")[-1].split(".")[:-1]).replace("_", " "))
@@ -165,26 +168,4 @@ def downloadFromRawUrl(href: str, pythomat: Pythomat, section: str, br: Browser,
 		print("[Ignored] {} since its file extension is not whitelisted".format(href))
 		return
 
-	download(pythomat, section, br, href, overwrite, "{}.{}".format(filename, fileext), saveto)
-
-def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite: int = 1, filename: str = "", saveto: str = ""):
-	try:
-		if filename == "":
-			filename = url.split("/")[-1]
-			filename = filename.split("?")[0]
-		do_download = True
-		if not saveto.endswith("/"):
-			saveto = saveto + "/"
-		if overwrite == 0 and os.path.isfile(saveto + filename):
-			do_download = False
-
-		if do_download:
-			print("Downloading {} as \"{}\" ...".format(url, filename))
-			br.retrieve(url, filename)
-			pythomat.reportFinished(section, filename)
-			pythomat.reportLog(section, filename)
-		else:
-			print("[Ignored] {} exists already".format(url))
-	except Exception as ex:
-		print("[Failed] {}, Error: {}".format(url, ex), file=sys.stderr)
-		pythomat.reportFailed(section, filename)
+	download(pythomat, section, br, href, overwrite, "{}.{}".format(filename, fileext), saveto, detect, detect_recursive)

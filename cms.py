@@ -11,11 +11,13 @@ from mechanize import Browser
 
 from pythomat import Pythomat
 
-http.client._MAXHEADERS = 1000
+http.client._MAXHEADERS = 10000
 
 
 def start(section: str, items: dict, pythomat: Pythomat):
     saveto = items["saveto"]
+    detect = items["password"] if "detect" in items else items["saveto"]
+    detect_recursive = items["detect_recursive"] if "detect_recursive" in items else False
     uri = items["uri"]
     uri = uri + ("/" if not uri.endswith("/") else "")
     uri_materials = uri + "materials"
@@ -89,12 +91,12 @@ def start(section: str, items: dict, pythomat: Pythomat):
             continue
 
         if downloadpath.startswith(uri):
-            download(pythomat, section, br, downloadpath, overwrite, "{} ({}).{}".format(filename, rev, fileext), saveto)
+            download(pythomat, section, br, downloadpath, overwrite, "{} ({}).{}".format(filename, rev, fileext), saveto, detect, detect_recursive)
         else:
             print("[Ignored] {} since it's an externally hosted file".format(downloadpath))
 
 
-def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite: int = 1, filename: str = "", saveto: str = ""):
+def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite: int = 1, filename: str = "", saveto: str = "", detect: str = "", detect_recursive: bool = False):
     try:
         if filename == "":
             filename = url.split("/")[-1]
@@ -102,12 +104,12 @@ def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite:
         do_download = True
         if not saveto.endswith("/"):
             saveto = saveto + "/"
-        if overwrite == 0 and os.path.isfile(saveto + filename):
+        if overwrite == 0 and pythomat.alreadyDownloaded(detect, filename, detect_recursive):
             do_download = False
 
         if do_download:
             print("Downloading {} as \"{}\" ...".format(url, filename))
-            br.retrieve(url, filename)
+            br.retrieve(url, saveto + filename)
             pythomat.reportFinished(section, filename)
             pythomat.reportLog(section, filename)
         else:

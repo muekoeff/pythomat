@@ -36,14 +36,14 @@ Zum Updaten kann Git verwendet werden. Einen automatisierten Mechanismus zum Upd
 - Optional kann als Argument eine alternative \*.ini-Datei übergeben werden. Standardmäßig wird die *pythomat.ini* im Arbeitsverzeichnis eingelesen.
 
 ## Argumente
-| Parameter			| Beschreibung |
-| -----------------	| ------------ |
-| `--createdirs`	| Legt automatisch fehlende Verzeichnisse an, in die heruntergeladen werden soll. |
-| `-h`, `--help`	| Zeigt eine Liste aller unterstützten Argumente an. |
-| `-l`, `--list`	| Zeigt eine Liste aller vom Benutzer definierten Regeln an. |
-| `--log <Pfad>`	| Speichert eine Historie heruntergeladener Dateien im spezifizierten Pfad ab. |
-| `-r`, `--rules`	| Führt nur die mit Komma getrennt aufgezählten Regeln aus. Nicht aufgezählte Regeln werden ausgelassen. Mit dem Wert `all` werden alle Regeln ausgeführt, auch solche die normalerweise mit `skip` ausgelassen werden. |
-| `--version`		| Zeigt einen Link zum GitHub-Repository an. |
+| Parameter       | Beschreibung |
+| --------------- | ------------ |
+| `--createdirs`  | Legt automatisch fehlende Verzeichnisse an, in die heruntergeladen werden soll. |
+| `-h`, `--help`  | Zeigt eine Liste aller unterstützten Argumente an. |
+| `-l`, `--list`  | Zeigt eine Liste aller vom Benutzer definierten Regeln an. |
+| `--log <Pfad>`  | Speichert eine Historie heruntergeladener Dateien im spezifizierten Pfad ab. |
+| `-r`, `--rules` | Führt nur die mit Komma getrennt aufgezählten Regeln aus. Nicht aufgezählte Regeln werden ausgelassen. Mit dem Wert `all` werden alle Regeln ausgeführt, auch solche die normalerweise mit `skip` ausgelassen werden. |
+| `--version`     | Zeigt einen Link zum GitHub-Repository an. |
 
 # Konfiguration
 Pythomat benutzt die Standard-Bibliothek ConfigParser zum Parsen von ini-Dateien. Standardmäßig wird *pythomat.ini* verwendet.
@@ -59,18 +59,20 @@ Hier eine Beispieldatei, die ein einzelnes Skript herunterlädt. Der Name des Ab
 Mit dem Parameter `mode` kann zwischen den zur Verfügung stehenden Modi gewechselt werden. Folgende Modi stehen zur Verfügung: [`batch`](#batch), [`cms`](#cms), [`module`](#module), [`moodle`](#moodle), [`single`](#single), [`youtube`](#youtube)
 
 ### `batch`
-Durchsucht eine Seite nach Links und lädt alle diese Dateien herunter.
+Durchsucht eine Seite nach Links und lädt alle gematchten Dateien herunter.
 
 #### Parameter
-| Parameter		| Beschreibung |
-| ---------		| ------------ |
-| `uri`			| URL, die nach Links durchsucht werden soll. |
-| `saveto`		| Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
-| `pattern`		| Regulärer Ausdruck, den der Link erfüllen muss, damit er heruntergeladen wird. |
-| `username`	| *optional:* Benutzername für HTTP-Authentifizierung. Nur zusammen mit `password` zu verwenden. |
-| `password`	| *optional:* Kennwort für HTTP-Authentifizierung. Nur zusammen mit `username` zu verwenden. |
-| `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
-| `skip`		| *optional:* Wenn auf 1 gesetzt, wird diese Regel ausschließlich dann ausgeführt, wenn sie im `--rules`-Argument aufgelistet ist. |
+| Parameter           | Beschreibung |
+| ------------------- | ------------ |
+| `uri`               | URL, die nach Links durchsucht werden soll. |
+| `saveto`            | Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
+| `detect`            | Verzeichnis, welches durchsucht werden soll, ob ein Dateiname bereits existiert und somit die Datei bereits heruntergeladen wurde. Entspricht, falls nicht angegeben, `saveto`. |
+| `detect_recursive`  | Ob das `detect`-Verzeichnis rekursiv durchsucht werden soll. |
+| `pattern`           | Regulärer Ausdruck, den der Link erfüllen muss, damit er heruntergeladen wird. |
+| `username`          | *optional:* Benutzername für HTTP-Authentifizierung. Nur zusammen mit `password` zu verwenden. |
+| `password`          | *optional:* Kennwort für HTTP-Authentifizierung. Nur zusammen mit `username` zu verwenden. |
+| `overwrite`         | *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
+| `skip`              | *optional:* Wenn auf 1 gesetzt, wird diese Regel ausschließlich dann ausgeführt, wenn sie im `--rules`-Argument aufgelistet ist. |
 
 ### `cms`
 Kurzform für einen Modulaufruf mit *cms* als Modul. Siehe [entsprechenden Abschnitt](#cms-1).
@@ -83,33 +85,35 @@ Lädt `<module>.py` und führt `<module>.start(section, items, pythomat)` aus. `
 Über die `pythomat`-Referenz sollte `reportFailed(section, filename)` und `reportFinished(section, filename)` aufgerufen werden, um im abschließenden Report aufgelistet zu werden. ([Auflistung der Module](#module-1))
 
 #### Parameter
-| Parameter	| Beschreibung |
-| ---------	| ------------ |
-| `module`	| Name des zu ladenden Moduls. (entspricht Dateinamen ohne `.py`-Dateiendung) |
-| `skip`	| *optional:* Wenn auf 1 gesetzt, wird diese Regel ausschließlich dann ausgeführt, wenn sie im `--rules`-Argument aufgelistet ist. |
-| *Abhängig von Modul*	| Module können weitere Parameter einführen.
+| Parameter            | Beschreibung |
+| -------------------- | ------------ |
+| `module`             | Name des zu ladenden Moduls. (entspricht Dateinamen ohne `.py`-Dateiendung) |
+| `skip`               | *optional:* Wenn auf 1 gesetzt, wird diese Regel ausschließlich dann ausgeführt, wenn sie im `--rules`-Argument aufgelistet ist. |
+| *Abhängig von Modul* | Module können weitere Parameter einführen. |
 
 ### `single`
 Lädt eine einzelne Datei herunter, falls sie auf dem Server geändert wurde.
 
-| Parameter		| Beschreibung |
-| ---------		| ------------ |
-| `uri`			| URL der zu herunterzuladenden Datei. |
-| `saveto`		| Verzeichnis, in welches die Datei heruntergeladen werden soll. |
-| `filename`	| *optional:* Dateiname für die heruntergeladene Datei. Falls nicht angegeben, wird der Dateiname aus `uri` entnommen. |
-| `username`	| *optional:* Benutzername für HTTP-Authentifizierung. Nur zusammen mit `password` zu verwenden. |
-| `password`	| *optional:* Kennwort für HTTP-Authentifizierung. Nur zusammen mit `username` zu verwenden. |
-| `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
-| `skip`		| *optional:* Wenn auf 1 gesetzt, wird diese Regel ausschließlich dann ausgeführt, wenn sie im `--rules`-Argument aufgelistet ist. |
+| Parameter           | Beschreibung |
+| ------------------- | ------------ |
+| `uri`               | URL der zu herunterzuladenden Datei. |
+| `saveto`            | Verzeichnis, in welches die Datei heruntergeladen werden soll. |
+| `detect`            | Verzeichnis, welches durchsucht werden soll, ob ein Dateiname bereits existiert und somit die Datei bereits heruntergeladen wurde. Entspricht, falls nicht angegeben, `saveto`. |
+| `detect_recursive`  | Ob das `detect`-Verzeichnis rekursiv durchsucht werden soll. |
+| `filename           | *optional:* Dateiname für die heruntergeladene Datei. Falls nicht angegeben, wird der Dateiname aus `uri` entnommen. |
+| `username`          | *optional:* Benutzername für HTTP-Authentifizierung. Nur zusammen mit `password` zu verwenden. |
+| `password`          | *optional:* Kennwort für HTTP-Authentifizierung. Nur zusammen mit `username` zu verwenden. |
+| `overwrite`         | *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
+| `skip`              | *optional:* Wenn auf 1 gesetzt, wird diese Regel ausschließlich dann ausgeführt, wenn sie im `--rules`-Argument aufgelistet ist. |
 
 ### `youtube`
 **Legacy.** Lädt ein einzelnes YouTube-Video der gegebenen id herunter.
 
-| Parameter		| Beschreibung |
-| ---------		| ------------ |
-| `uri`			|  |
-| `saveto`		|  |
-| `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
+| Parameter   | Beschreibung |
+| ----------- | ------------ |
+| `uri`       |  |
+| `saveto`    |  |
+| `overwrite` | *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
 
 ## Module
 Module werden mit dem Modus `mode = module` verwendet. Dazu muss in `module` der Name des zu ladenden Modus eingetragen werden. Weitere Module lassen sich schnell selbst erstellen. Folgendes Modul stehen zur Verfügung: [`cms`](#cms-1), [`moodle`](#moodle-1).
@@ -117,26 +121,30 @@ Module werden mit dem Modus `mode = module` verwendet. Dazu muss in `module` der
 ### `cms`
 Unterstützung für CakeCMS-Materialseiten.
 
-| Parameter		| Beschreibung |
-| ---------		| ------------ |
-| `uri`			| URL der Hauptseite des CMS. |
-| `saveto`		| Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
-| `username`	| Benutzername im CMS. |
-| `password`	| *alternativ zu `keyring_id`* <br> Kennwort zum in `username` angegebenen Benutzer in Klartext. |
-| `keyring_id`	| *alternativ zu `password`* <br> Kennung, welche zum Service `pythomat.<keyring_id>` zusammengesetzt wird. |Sollte unter der Kennung kein Kennwort im System-Keyring vorhanden sein, so wird der Benutzer dazu aufgefordert eins einzugeben. Dieses wird im Keyring abgespeichert. |
-| `fileext_whitelist`	| *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die heruntergeladen werden sollen. |
-| `fileext_blacklist`	| *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die nicht heruntergeladen werden sollen. |
-| `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 0. |
+| Parameter           | Beschreibung |
+| ------------------- |--------------|
+| `uri`               | URL der Hauptseite des CMS. |
+| `saveto`            | Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
+| `detect`            | Verzeichnis, welches durchsucht werden soll, ob ein Dateiname bereits existiert und somit die Datei bereits heruntergeladen wurde. Entspricht, falls nicht angegeben, `saveto`. |
+| `detect_recursive`  | Ob das `detect`-Verzeichnis rekursiv durchsucht werden soll. |
+| `username`          | Benutzername im CMS. |
+| `password`          | *alternativ zu `keyring_id`* <br> Kennwort zum in `username` angegebenen Benutzer in Klartext. |
+| `keyring_id`        | *alternativ zu `password`* <br> Kennung, welche zum Service `pythomat.<keyring_id>` zusammengesetzt wird. |Sollte unter der Kennung kein Kennwort im System-Keyring vorhanden sein, so wird der Benutzer dazu aufgefordert eins einzugeben. Dieses wird im Keyring abgespeichert. |
+| `fileext_whitelist` | *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die heruntergeladen werden sollen. |
+| `fileext_blacklist` | *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die nicht heruntergeladen werden sollen. |
+| `overwrite`         | *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 0. |
 
 ### `moodle`
 Unterstützung für Moodle-Instanzen.
 
-| Parameter		| Beschreibung |
-| ---------		| ------------ |
-| `uri`			| URL der Hauptseite der Veranstaltung auf Moodle. |
-| `saveto`		| Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
-| `username`	| Benutzername in der Moodle-Instanz. |
-| `password`	| *alternativ zu `keyring_id`* <br> Kennwort zum in `username` angegebenen Benutzer in Klartext. |
-| `keyring_id`	| *alternativ zu `password`* <br> Kennung, welche zum Service `pythomat.<keyring_id>` zusammengesetzt wird. |Sollte unter der Kennung kein Kennwort im System-Keyring vorhanden sein, so wird der Benutzer dazu aufgefordert eins einzugeben. Dieses wird im Keyring abgespeichert. |
-| `fileext_whitelist`	| Mit Leerzeichen getrennte Auflistung an Dateiendungen, die heruntergeladen werden sollen. Für mp4 ist zu beachten, dass `mpeg mp4` in die Auflistung aufgenommen werden muss. |
-| `overwrite`	| *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 0. |
+| Parameter           | Beschreibung |
+| ------------------- | ------------ |
+| `uri`               | URL der Hauptseite der Veranstaltung auf Moodle. |
+| `saveto`            | Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
+| `detect`            | Verzeichnis, welches durchsucht werden soll, ob ein Dateiname bereits existiert und somit die Datei bereits heruntergeladen wurde. Entspricht, falls nicht angegeben, `saveto`. |
+| `detect_recursive`  | Ob das `detect`-Verzeichnis rekursiv durchsucht werden soll. |
+| `username`          | Benutzername in der Moodle-Instanz. |
+| `password`          | *alternativ zu `keyring_id`* <br> Kennwort zum in `username` angegebenen Benutzer in Klartext. |
+| `keyring_id`        | *alternativ zu `password`* <br> Kennung, welche zum Service `pythomat.<keyring_id>` zusammengesetzt wird. |Sollte unter der Kennung kein Kennwort im System-Keyring vorhanden sein, so wird der Benutzer dazu aufgefordert eins einzugeben. Dieses wird im Keyring abgespeichert. |
+| `fileext_whitelist` | Mit Leerzeichen getrennte Auflistung an Dateiendungen, die heruntergeladen werden sollen. Für mp4 ist zu beachten, dass `mpeg mp4` in die Auflistung aufgenommen werden muss. |
+| `overwrite`         | *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 0. |
