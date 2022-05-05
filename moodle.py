@@ -115,15 +115,15 @@ def scanPage(br: Browser, uri_materials: str, saveto: str, fileext_whitelist: Li
 		elif ressourceClassification[1] == 2:	# Folder
 			filelink_dom = icon.parent
 			downloadpath = filelink_dom.get("href")
-			scanSubPage(br, downloadpath, saveto, fileext_whitelist, pythomat, section, overwrite)
+			scanSubPage(br, downloadpath, saveto, fileext_whitelist, pythomat, section, overwrite, detect, detect_recursive)
 		elif ressourceClassification[1] == 3:	# Folder
 			filelink_dom = icon.parent
 			downloadpath = filelink_dom.get("href")
-			scanAssignmentPage(br, downloadpath, saveto, fileext_whitelist, pythomat, section, overwrite)
+			scanAssignmentPage(br, downloadpath, saveto, fileext_whitelist, pythomat, section, overwrite, detect, detect_recursive)
 		else:	# Don't download | ressourceClassification[1] == 0:
 			print("[Ignored] Since its icon is not whitelisted: {}".format(icon.get("src")))
 
-def scanAssignmentPage(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int):
+def scanAssignmentPage(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int, detect: str, detect_recursive: bool):
 	soup = br.open(url)
 	soup = BeautifulSoup(soup.read(), "html.parser")
 
@@ -136,7 +136,7 @@ def scanAssignmentPage(br: Browser, url: str, saveto: str, fileext_whitelist: Li
 		elif ressourceClassification[1] == 1:	# Download
 			filelink_dom = icon.parent.parent.find("a")
 			downloadpath = filelink_dom.get("href")
-			downloadFromRawUrl(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto)
+			downloadFromRawUrl(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive)
 		else:	# Don't download | ressourceClassification[1] == 0:
 			print("[Ignored] Since its icon is not whitelisted: {}".format(icon.get("src")))
 
