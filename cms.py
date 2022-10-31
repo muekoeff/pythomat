@@ -84,16 +84,16 @@ def start(section: str, items: dict, pythomat: Pythomat):
         fileext = downloadpath.split("/")[-1].split(".")[-1]
 
         if fileext_blacklist is not None and fileext in fileext_blacklist:
-            print("[Ignored] {} since its file extension is blacklisted".format(downloadpath))
+            print("[Ignored] File extension blacklisted: {}".format(downloadpath))
             continue
         if fileext_whitelist is not None and fileext not in fileext_whitelist:
-            print("[Ignored] {} since its file extension is not whitelisted".format(downloadpath))
+            print("[Ignored] File extension not whitelisted: {}".format(downloadpath))
             continue
 
         if downloadpath.startswith(uri):
             download(pythomat, section, br, downloadpath, overwrite, "{} ({}).{}".format(filename, rev, fileext), saveto, detect, detect_recursive)
         else:
-            print("[Ignored] {} since it's an externally hosted file".format(downloadpath))
+            print("[Ignored] Externally hosted: {}".format(downloadpath))
 
 
 def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite: int = 1, filename: str = "", saveto: str = "", detect: str = "", detect_recursive: bool = False):
@@ -113,7 +113,7 @@ def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite:
             pythomat.reportFinished(section, filename)
             pythomat.reportLog(section, filename)
         else:
-            print("[Ignored] {} exists already".format(url))
+            print("[Ignored] Already downloaded: {}".format(url))
     except Exception as ex:
         print("[Failed] {}, Error: {}".format(url, ex), file=sys.stderr)
         pythomat.reportFailed(section, filename)

@@ -86,9 +86,9 @@ class Pythomat:
                 return True
             else:
                 if uptodate:
-                    print("[Ignored] {} is already up to date".format(url))
+                    print("[Ignored] Up-to-date: {}".format(url))
                 else:
-                    print("[Ignored] {} exists already".format(url))
+                    print("[Ignored] Already downloaded: {}".format(url))
         except Exception as ex:
             print("[Failed] {}, Error: {}".format(url, ex), file=sys.stderr)
             self.reportFailed(section, filename)
