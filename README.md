@@ -35,6 +35,12 @@ Zum Updaten kann Git verwendet werden. Einen automatisierten Mechanismus zum Upd
 - Im Terminal `python3 pythomat.py` eintippen und <kbd>Enter</kbd> drücken.
 - Optional kann als Argument eine alternative \*.ini-Datei übergeben werden. Standardmäßig wird die *pythomat.ini* im Arbeitsverzeichnis eingelesen.
 
+Ich habe mir eine Desktop-Verknüpfung mit folgendem Befehl angelegt, damit die Ausgabe auch nach Abschluss noch offen bleibt:
+
+```shell
+sh -c 'python3 "/link/zu/pythomat.py" --log "/link/zu/Pythomat.log" "/link/zu/Pythomat.ini"; echo "Zum Beenden Enter drücken..." && read name'
+```
+
 ## Argumente
 | Parameter       | Beschreibung |
 | --------------- | ------------ |
