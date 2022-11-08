@@ -81,18 +81,18 @@ class Pythomat:
                     os.makedirs(saveto)
 
                 os.chdir(saveto)
-                print("Downloading {} as \"{}\" ...".format(url, filename))
+                print(f"Downloading {url} as \"{filename}\" ...")
                 br.retrieve(url, filename)
                 self.reportFinished(section, filename)
                 self.reportLog(section, filename, logMessage)
                 return True
             else:
                 if uptodate:
-                    print("[Ignored] Up-to-date: {}".format(url))
+                    print(f"[Ignored] Up-to-date: {url}")
                 else:
-                    print("[Ignored] Already downloaded: {}".format(url))
+                    print(f"[Ignored] Already downloaded: {url}")
         except Exception as ex:
-            print("[Failed] {}, Error: {}".format(url, ex), file=sys.stderr)
+            print(f"[Failed] {url}, Error: {ex}", file=sys.stderr)
             self.reportFailed(section, filename)
 
         return False
@@ -113,10 +113,10 @@ class Pythomat:
 
     # Downloads YouTuve-Video with id to saveto and overwrites (or not)
     def downloadYoutube(self, section: str, id: str, overwrite=True, saveto=""):
-        output = "-o \"{}%(title)s-%(id)s.%(ext)s\"".format(saveto)
-        if overwrite or len(glob.glob("{}*{}*".format(saveto, id))) == 0:
-            url = "https://www.youtube.com/watch?v={}".format(id)
-            subprocess.call("youtube-dl {} \"{}\"".format(output, url), shell=True)
+        output = f"-o \"{saveto}%(title)s-%(id)s.%(ext)s\""
+        if overwrite or len(glob.glob(f"{saveto}*{id}*")) == 0:
+            url = f"https://www.youtube.com/watch?v={id}"
+            subprocess.call(f"youtube-dl {output} \"{url}\"", shell=True)
             self.reportFinished(section, id)
 
     # Parses .ini file and executes the given Downloads
@@ -128,15 +128,15 @@ class Pythomat:
             os.chdir(workingdir)  # Reset working dir in case it has been changed
 
             if ruleList is not None and section not in ruleList and rules != "all":
-                print("### Skipping {} ###".format(section))
+                print(f"### Skipping {section} ###")
                 continue
 
             skip = int(ini.get(section, "skip", fallback=0))
             if ruleList is None and skip == 1:
-                print("### Skipping {} - must be started manually ###".format(section))
+                print(f"### Skipping {section} - must be started manually ###")
                 continue
 
-            print("### Processing {} ###".format(section))
+            print(f"### Processing {section} ###")
 
             uri = ini.get(section, "uri")
             saveto = ini.get(section, "saveto")
@@ -197,7 +197,7 @@ class Pythomat:
                     print(traceback.format_exc(), file=sys.stderr)
                     self.reportError(section, str(e))
             else:
-                print("Mode '{}' unsupported".format(mode), file=sys.stderr)
+                print(f"Mode '{mode}' unsupported", file=sys.stderr)
 
     def openLog(self, path: str):
         if path is not None:
@@ -208,19 +208,19 @@ class Pythomat:
         if len(self.errors) != 0:
             print("Errors:")
             for error in self.errors:
-                print("• {} | {}".format(error[0], error[1]))
+                print(f"• {error[0]} | {error[1]}")
 
         if len(self.failed) != 0:
             print("Failed:")
             for failed in self.failed:
-                print("• {} | {}".format(failed[0], failed[1]))
+                print(f"• {failed[0]} | {failed[1]}")
 
         if len(self.downloaded) == 0:
             print("Downloaded: nothing")
         else:
             print("Downloaded:")
             for downloaded in self.downloaded:
-                print("• {} | {}".format(downloaded[0], downloaded[1]))
+                print(f"• {downloaded[0]} | {downloaded[1]}")
 
     def reportError(self, section: str, msg: str):
         self.errors.append((section, msg))

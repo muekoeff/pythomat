@@ -31,22 +31,21 @@ def start(section: str, items: dict, pythomat: Pythomat):
     createdirs = items["createdirs"] if "createdirs" in items else None
 
     if password is None and keyring_id is None:
-        print("No credentials provided for {}!".format(section), file=sys.stderr)
+        print(f"No credentials provided for {section}!", file=sys.stderr)
         exit(1)
     if password is None and keyring_id is not None:
         try:
-            password = keyring.get_password("pythomat.{}".format(keyring_id), username)
+            password = keyring.get_password(f"pythomat.{keyring_id}", username)
 
             if password is None:
-                print("Credentials 'pythomat.{}' not found in keyring".format(keyring_id))
+                print(f"Credentials 'pythomat.{keyring_id}' not found in keyring")
                 print(
-                    "You'll be prompted to enter you password for '{}' with the username '{}' in order to save it in your keyring as 'pythomat.{}'.".format(
-                        section, username, keyring_id))
+                    f"You'll be prompted to enter you password for '{section}' with the username '{username}' in order to save it in your keyring as 'pythomat.{keyring_id}'.")
                 print("If you don't want to please terminate Pythomat and edit your *.ini-file.")
-                password = getpass.getpass("Password for {} keyring: ".format(section))
-                keyring.set_password("pythomat.{}".format(keyring_id), username, password)
+                password = getpass.getpass(f"Password for {section} keyring: ")
+                keyring.set_password(f"pythomat.{keyring_id}", username, password)
         except keyring.errors.KeyringError as ex:
-            print("Login for {} failed. Keyring locked: {}".format(section, ex), file=sys.stderr)
+            print(f"Login for {section} failed. Keyring locked: {ex}", file=sys.stderr)
             exit(1)
 
     br = Browser()
@@ -59,19 +58,17 @@ def start(section: str, items: dict, pythomat: Pythomat):
 
     uri_afterlogin = br.geturl()
     if "/students/view" not in uri_afterlogin and "/tutors/view" not in uri_afterlogin:
-        print(
-            "[Failed] Login failed for {}. Expected to be redirected to '/students/view' or '/tutors/view', but url was {}".format(
-                section, uri_afterlogin), file=sys.stderr)
+        print(f"[Failed] Login failed for {section}. Expected to be redirected to '/students/view' or '/tutors/view', but url was {uri_afterlogin}", file=sys.stderr)
         exit(1)
     else:
-        print("Login successful for {}".format(section))
+        print(f"Login successful for {section}")
 
     soup = br.open(uri_materials)
     soup = BeautifulSoup(soup.read(), "html.parser")
 
     if createdirs and not os.path.exists(saveto):
         os.makedirs(saveto)
-        print("Created path: {}".format(saveto))
+        print(f"Created path: {saveto}")
     
     os.chdir(saveto)
     for row in soup.findAll("tr"):
@@ -84,16 +81,16 @@ def start(section: str, items: dict, pythomat: Pythomat):
         fileext = downloadpath.split("/")[-1].split(".")[-1]
 
         if fileext_blacklist is not None and fileext in fileext_blacklist:
-            print("[Ignored] File extension blacklisted: {}".format(downloadpath))
+            print(f"[Ignored] File extension blacklisted: {downloadpath}")
             continue
         if fileext_whitelist is not None and fileext not in fileext_whitelist:
-            print("[Ignored] File extension not whitelisted: {}".format(downloadpath))
+            print(f"[Ignored] File extension not whitelisted: {downloadpath}")
             continue
 
         if downloadpath.startswith(uri):
-            download(pythomat, section, br, downloadpath, overwrite, "{} ({}).{}".format(filename, rev, fileext), saveto, detect, detect_recursive)
+            download(pythomat, section, br, downloadpath, overwrite, f"{filename} ({rev}).{fileext}", saveto, detect, detect_recursive)
         else:
-            print("[Ignored] Externally hosted: {}".format(downloadpath))
+            print(f"[Ignored] Externally hosted: {downloadpath}")
 
 
 def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite: int = 1, filename: str = "", saveto: str = "", detect: str = "", detect_recursive: bool = False):
@@ -108,12 +105,12 @@ def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite:
             do_download = False
 
         if do_download:
-            print("Downloading {} as \"{}\" ...".format(url, filename))
+            print(f"Downloading {url} as \"{filename}\" ...")
             br.retrieve(url, saveto + filename)
             pythomat.reportFinished(section, filename)
             pythomat.reportLog(section, filename)
         else:
-            print("[Ignored] Already downloaded: {}".format(url))
+            print(f"[Ignored] Already downloaded: {url}")
     except Exception as ex:
-        print("[Failed] {}, Error: {}".format(url, ex), file=sys.stderr)
+        print(f"[Failed] {url}, Error: {ex}", file=sys.stderr)
         pythomat.reportFailed(section, filename)
