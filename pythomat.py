@@ -6,6 +6,7 @@ import pathlib
 import subprocess
 import sys
 import time
+import traceback
 from argparse import ArgumentParser
 from datetime import datetime
 from typing import List, Tuple, TextIO
@@ -16,6 +17,7 @@ from mechanize import Browser
 # noinspection PyPep8Naming
 class Pythomat:
     downloaded: List[Tuple[str, str]] = []
+    errors: List[Tuple[str, str]] = []
     failed: List[Tuple[str, str]] = []
     logFile: TextIO = None
 
@@ -147,28 +149,53 @@ class Pythomat:
             if mode == "batch":
                 pattern = ini.get(section, "pattern")
                 overwrite = ini.get(section, "overwrite", fallback=1)
-                self.downloadAll(section, uri, createdirs, overwrite, pattern, saveto, detect, detect_recursive, httpUsername, httpPassword)
+                try:
+                    self.downloadAll(section, uri, createdirs, overwrite, pattern, saveto, detect, detect_recursive, httpUsername, httpPassword)
+                except Exception as e:
+                    print("An error occured", file=sys.stderr)
+                    print(traceback.format_exc(), file=sys.stderr)
+                    self.reportError(section, str(e))
             elif mode == "cms" or mode == "moodle":
                 name = mode
                 module = __import__(name, globals=globals())
 
                 items = dict(ini.items(section))
                 items["createdirs"] = createdirs
-                module.start(section, items, self)
+                try:
+                    module.start(section, items, self)
+                except Exception as e:
+                    print("An error occured", file=sys.stderr)
+                    print(traceback.format_exc(), file=sys.stderr)
+                    self.reportError(section, str(e))
             elif mode == "module":
                 name = "cms" if mode == "cms" else ini.get(section, "module")
                 module = __import__(name, globals=globals())
 
                 items = dict(ini.items(section))
                 items["createdirs"] = createdirs
-                module.start(section, items, self)
+                try:
+                    module.start(section, items, self)
+                except Exception as e:
+                    print("An error occured", file=sys.stderr)
+                    print(traceback.format_exc(), file=sys.stderr)
+                    self.reportError(section, str(e))
             elif mode == "single":
                 name = ini.get(section, "filename", fallback="")
                 overwrite = ini.get(section, "overwrite", fallback=1)
-                self.download(section, uri, createdirs, overwrite, name, saveto, detect, detect_recursive, httpUsername=httpUsername, httpPassword=httpPassword)
+                try:
+                    self.download(section, uri, createdirs, overwrite, name, saveto, detect, detect_recursive, httpUsername=httpUsername, httpPassword=httpPassword)
+                except Exception as e:
+                    print("An error occured", file=sys.stderr)
+                    print(traceback.format_exc(), file=sys.stderr)
+                    self.reportError(section, str(e))
             elif mode == "youtube":
                 overwrite = int(ini.get(section, "overwrite", fallback=1))
-                self.downloadYoutube(section, uri, overwrite, saveto)
+                try:
+                    self.downloadYoutube(section, uri, overwrite, saveto)
+                except Exception as e:
+                    print("An error occured", file=sys.stderr)
+                    print(traceback.format_exc(), file=sys.stderr)
+                    self.reportError(section, str(e))
             else:
                 print("Mode '{}' unsupported".format(mode), file=sys.stderr)
 
@@ -178,17 +205,25 @@ class Pythomat:
 
     def printReport(self):
         print("### Report ###")
+        if len(self.errors) != 0:
+            print("Errors:")
+            for error in self.errors:
+                print("• {} | {}".format(error[0], error[1]))
+
         if len(self.failed) != 0:
             print("Failed:")
             for failed in self.failed:
-                print("{} | {}".format(failed[0], failed[1]))
+                print("• {} | {}".format(failed[0], failed[1]))
 
         if len(self.downloaded) == 0:
             print("Downloaded: nothing")
         else:
             print("Downloaded:")
             for downloaded in self.downloaded:
-                print("{} | {}".format(downloaded[0], downloaded[1]))
+                print("• {} | {}".format(downloaded[0], downloaded[1]))
+
+    def reportError(self, section: str, msg: str):
+        self.errors.append((section, msg))
 
     def reportFailed(self, section: str, filename: str):
         self.failed.append((section, filename))
