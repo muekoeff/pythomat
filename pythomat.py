@@ -81,7 +81,7 @@ class Pythomat:
                     os.makedirs(saveto)
 
                 os.chdir(saveto)
-                print(f"Downloading {url} as \"{filename}\" ...")
+                print(f"Downloading {url} as \"{filename}\" …")
                 br.retrieve(url, filename)
                 self.reportFinished(section, filename)
                 self.reportLog(section, filename, logMessage)

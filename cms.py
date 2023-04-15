@@ -105,7 +105,7 @@ def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite:
             do_download = False
 
         if do_download:
-            print(f"Downloading {url} as \"{filename}\" ...")
+            print(f"Downloading {url} as \"{filename}\" …")
             br.retrieve(url, saveto + filename)
             pythomat.reportFinished(section, filename)
             pythomat.reportLog(section, filename)

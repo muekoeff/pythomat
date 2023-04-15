@@ -16,19 +16,21 @@ from cms import download
 http.client._MAXHEADERS = 1000
 
 
-def classifyRessource(iconScr: str, fileext_whitelist: List[str]) -> Tuple[str, int]:
+def classify_ressource(icon_src: str, fileext_whitelist: List[str]) -> Tuple[str, int]:
 	# Detect ressource type from icon (LOL). Moodle HTML-output is pretty ugly and seems to provide no better way for detection
-	if "/assign" in iconScr:
+	if "/assign" in icon_src:
 		return "assignment", 3
-	elif "/choicegroup" in iconScr:
+	elif "/choicegroup" in icon_src:
 		return "choicegroup", 0
-	elif "/folder" in iconScr:
+	elif "/folder" in icon_src:
 		return "folder", 2
-	elif "/forum" in iconScr:
+	elif "/forum" in icon_src:
 		return "forum", 0
+	elif "/resource" in icon_src:
+		return "unknown", 1
 	else:
 		for fileext in fileext_whitelist:
-			if f"/{fileext}" in iconScr:
+			if f"/{fileext}" in icon_src:
 				return fileext, 1
 		return None
 
@@ -90,72 +92,82 @@ def start(section: str, items: dict, pythomat: Pythomat):
 		print(f"Created path: {saveto}")
 	
 	os.chdir(saveto)
-	scanPage(br, uri_materials, saveto, fileext_whitelist, pythomat, section, overwrite, detect, detect_recursive)
+	scan_page(br, uri_materials, saveto, fileext_whitelist, pythomat, section, overwrite, detect, detect_recursive)
 			
 
-def scanPage(br: Browser, uri_materials: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int, detect: str, detect_recursive: bool):
+def filelink(icon):
+	if icon.parent.get("href") is not None:
+		return icon.parent.get("href")
+	else:
+		links = icon.find_previous("div", class_="activity-item").select(".activityname a")
+
+		if len(links) > 0:
+			return links[0].get("href")
+		else:
+			return None
+
+
+def scan_page(br: Browser, uri_materials: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int, detect: str, detect_recursive: bool):
 	soup = br.open(uri_materials)
 	soup = BeautifulSoup(soup.read(), "html.parser")
 	
 	os.chdir(saveto)
 
-	icons = soup.select(".activityinstance .activityicon")
+	icons = soup.select(".activityinstance .activityicon, .activity-instance .activityicon")
 	for icon in icons:
-		ressourceClassification = classifyRessource(icon.get("src"), fileext_whitelist)
+		ressource_classification = classify_ressource(icon.get("src"), fileext_whitelist)
 
-		if ressourceClassification is None:
+		if ressource_classification is None:
 			print(f"[Ignored] Icon could not be classified: {icon.get('src')}")
-		elif ressourceClassification[1] == 1:	# Download
-			filelink_dom = icon.parent
-			downloadpath = filelink_dom.get("href")
-			downloadFromRawUrl(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive)
-		elif ressourceClassification[1] == 2:	# Folder
-			filelink_dom = icon.parent
-			downloadpath = filelink_dom.get("href")
-			scanSubPage(br, downloadpath, saveto, fileext_whitelist, pythomat, section, overwrite, detect, detect_recursive)
-		elif ressourceClassification[1] == 3:	# Folder
-			filelink_dom = icon.parent
-			downloadpath = filelink_dom.get("href")
-			scanAssignmentPage(br, downloadpath, saveto, fileext_whitelist, pythomat, section, overwrite, detect, detect_recursive)
-		else:	# Don't download | ressourceClassification[1] == 0:
+		elif ressource_classification[1] == 1 or ressource_classification[1] == 3:	# Download or Folder
+			downloadpath = filelink(icon)
+
+			if downloadpath is not None:
+				download_from_raw_url(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive)
+		elif ressource_classification[1] == 2:	# Folder
+			downloadpath = filelink(icon)
+
+			if downloadpath is not None:
+				scan_sub_page(br, downloadpath, saveto, fileext_whitelist, pythomat, section, overwrite, detect, detect_recursive)
+		else:	# Don't download | ressource_classification[1] == 0:
 			print(f"[Ignored] Icon not whitelisted: {icon.get('src')}")
 
-def scanAssignmentPage(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int, detect: str, detect_recursive: bool):
+def scan_assignment_page(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int, detect: str, detect_recursive: bool):
 	soup = br.open(url)
 	soup = BeautifulSoup(soup.read(), "html.parser")
 
 	icons = soup.select("#intro div > .icon")
 	for icon in icons:
-		ressourceClassification = classifyRessource(icon.get("src"), fileext_whitelist)
+		ressource_classification = classify_ressource(icon.get("src"), fileext_whitelist)
 
-		if ressourceClassification is None:
+		if ressource_classification is None:
 			print(f"[Ignored] Icon could not be classified: {icon.get('src')}")
-		elif ressourceClassification[1] == 1:	# Download
+		elif ressource_classification[1] == 1:	# Download
 			filelink_dom = icon.parent.parent.find("a")
 			downloadpath = filelink_dom.get("href")
-			downloadFromRawUrl(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive)
-		else:	# Don't download | ressourceClassification[1] == 0:
+			download_from_raw_url(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive)
+		else:	# Don't download | ressource_classification[1] == 0:
 			print(f"[Ignored] Icon not whitelisted: {icon.get('src')}")
 
-def scanSubPage(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int, detect: str, detect_recursive: bool):
+def scan_sub_page(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int, detect: str, detect_recursive: bool):
 	soup = br.open(url)
 	soup = BeautifulSoup(soup.read(), "html.parser")
 
 	icons = soup.select(".fp-filename-icon .icon")
 	for icon in icons:
-		ressourceClassification = classifyRessource(icon.get("src"), fileext_whitelist)
+		ressource_classification = classify_ressource(icon.get("src"), fileext_whitelist)
 
-		if ressourceClassification is None:
+		if ressource_classification is None:
 			print(f"[Ignored] Icon could not be classified: {icon.get('src')}")
-		elif ressourceClassification[1] == 1:	# Download
+		elif ressource_classification[1] == 1:	# Download
 			filelink_dom = icon.parent.parent
 			downloadpath = filelink_dom.get("href")
-			downloadFromRawUrl(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive)
-		else:	# Don't download | ressourceClassification[1] == 0:
+			download_from_raw_url(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive)
+		else:	# Don't download | ressource_classification[1] == 0:
 			print(f"[Ignored] Icon is not whitelisted: {icon.get('src')}")
 
 
-def downloadFromRawUrl(href: str, pythomat: Pythomat, section: str, br: Browser, fileext_whitelist, overwrite: int, saveto: str, detect: str, detect_recursive: bool):
+def download_from_raw_url(href: str, pythomat: Pythomat, section: str, br: Browser, fileext_whitelist, overwrite: int, saveto: str, detect: str, detect_recursive: bool):
 	response = br.open(href)
 	actualdownloadpath = response.geturl()
 	filename = urllib.parse.unquote("".join(actualdownloadpath.split("/")[-1].split(".")[:-1]).replace("_", " "))
