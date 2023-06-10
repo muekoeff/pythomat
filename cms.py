@@ -18,7 +18,7 @@ http.client._MAXHEADERS = 10000
 def start(section: str, items: dict, pythomat: Pythomat):
 	saveto = items["saveto"]
 	detect = items["password"] if "detect" in items else items["saveto"]
-	detect_recursive = items["detect_recursive"] if "detect_recursive" in items else False
+	detect_recursive = items["detect_recursive"] == "true" or items["detect_recursive"] == "1" if "detect_recursive" in items else False
 	uri = items["uri"]
 	uri = uri + ("/" if not uri.endswith("/") else "")
 	uri_materials = uri + "materials"
@@ -73,11 +73,6 @@ def start(section: str, items: dict, pythomat: Pythomat):
 	soup = br.open(uri_materials)
 	soup = BeautifulSoup(soup.read(), "html.parser")
 
-	if createdirs and not os.path.exists(saveto):
-		os.makedirs(saveto)
-		print(f"Created path: {saveto}")
-	
-	os.chdir(saveto)
 	for row in soup.findAll("tr"):
 		filelink_dom = row.find(lambda tag: tag.name == "a" and tag.find_parent("td", {"class": "name-cell"}))
 
@@ -114,27 +109,6 @@ def start(section: str, items: dict, pythomat: Pythomat):
 		local_filename = f"{filename}.{fileext}" if rev is None else f"{filename} ({rev}).{fileext}"
 
 		if downloadpath.startswith(uri):
-			download(pythomat, section, br, downloadpath, overwrite, local_filename, saveto, detect, detect_recursive)
+			pythomat.download(section, downloadpath, createdirs, overwrite, local_filename, saveto, detect, detect_recursive, browser=br)
 		else:
 			print(f"[Ignored] Externally hosted: {downloadpath}")
-
-
-def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite: int = 1, filename: str = "", saveto: str = "", detect: str = "", detect_recursive: bool = False):
-	try:
-		if filename == "":
-			filename = url.split("/")[-1]
-			filename = filename.split("?")[0]
-		do_download = True
-		if overwrite == 0 and pythomat.alreadyDownloaded(detect, filename, detect_recursive):
-			do_download = False
-
-		if do_download:
-			print(f"Downloading {url} as \"{filename}\" …")
-			br.retrieve(url, os.path.join(saveto, filename))
-			pythomat.reportFinished(section, filename)
-			pythomat.reportLog(section, filename)
-		else:
-			print(f"[Ignored] Already downloaded: {url}")
-	except Exception as ex:
-		print(f"[Failed] {url}, Error: {ex}", file=sys.stderr)
-		pythomat.reportFailed(section, filename)

@@ -55,8 +55,13 @@ class Pythomat:
 
     # Downloads a single file form url to path and names it filename
     def download(self, section: str, url: str, createdirs: bool, overwrite: int, filename: str = "", saveto: str = "", detect: str = "", detect_recursive: bool = False,
-                 checklastmodified: bool = True, httpUsername: str = None, httpPassword: str = None, logMessage: str = None) -> bool:
+                 checklastmodified: bool = True, httpUsername: str = None, httpPassword: str = None, logMessage: str = None, browser: Browser = None) -> bool:
         uptodate: bool = False
+
+        if browser is None:
+            br = self.get_browser(url, httpUsername, httpPassword)
+        else:
+            br = browser
 
         try:
             if filename == "":
@@ -66,27 +71,29 @@ class Pythomat:
                 saveto = saveto + "/"
 
             if overwrite == 1 and self.alreadyDownloaded(detect, filename, detect_recursive) and checklastmodified:
-                br = self.get_browser(url, httpUsername, httpPassword)
-
+                # Overwriting is enabled and file has been already downloaded
                 br.open(url)
                 remote_time = time.strptime(br.response().info()["last-modified"], "%a, %d %b %Y %H:%M:%S GMT")
                 local_time = time.gmtime(os.stat(os.path.join(saveto, filename)).st_mtime)
                 do_download = (remote_time > local_time)
                 uptodate = True
-            elif overwrite == 0 and os.path.isfile(os.path.join(saveto, filename)):
+            elif overwrite == 0 and self.alreadyDownloaded(detect, filename, detect_recursive):
+                # Overwriting is disabled and file has been already downloaded
                 do_download = False
             else:
                 do_download = True
 
             if do_download:
-                br = self.get_browser(url, httpUsername, httpPassword)
-
                 if createdirs and not os.path.exists(saveto):
+                    print(f"Creating directory \"{saveto}\" …")
                     os.makedirs(saveto)
 
                 os.chdir(saveto)
                 print(f"Downloading {url} as \"{filename}\" …")
-                br.retrieve(url, filename)
+
+                br.retrieve(url, os.path.join(saveto, filename + ".tmp"))
+                os.rename(os.path.join(saveto, filename + ".tmp"), os.path.join(saveto, filename))
+
                 self.reportFinished(section, filename)
                 self.reportLog(section, filename, logMessage)
                 return True

@@ -11,12 +11,11 @@ from bs4 import BeautifulSoup
 from mechanize import Browser
 
 from pythomat import Pythomat
-from cms import download
 
 http.client._MAXHEADERS = 1000
 
 
-def classify_ressource(icon_src: str, fileext_whitelist: List[str]) -> Tuple[str, int]:
+def classify_ressource(icon_src: str, fileext_whitelist: List[str]) -> Tuple[str, int] | None:
 	# Detect ressource type from icon (LOL). Moodle HTML-output is pretty ugly and seems to provide no better way for detection
 	if "/assign" in icon_src:
 		return "assignment", 3
@@ -92,13 +91,9 @@ def start(section: str, items: dict, pythomat: Pythomat):
 		return
 	else:
 		print(f"Login successful for {section}")
-
-	if createdirs and not os.path.exists(saveto):
-		os.makedirs(saveto)
-		print(f"Created path: {saveto}")
 	
 	os.chdir(saveto)
-	scan_page(br, uri_materials, saveto, fileext_whitelist, pythomat, section, overwrite, detect, detect_recursive)
+	scan_page(br, uri_materials, saveto, fileext_whitelist, pythomat, section, overwrite, detect, detect_recursive, createdirs)
 			
 
 def filelink(icon):
@@ -113,7 +108,7 @@ def filelink(icon):
 			return None
 
 
-def scan_page(br: Browser, uri_materials: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int, detect: str, detect_recursive: bool):
+def scan_page(br: Browser, uri_materials: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: bool, detect: str, detect_recursive: bool, createdirs: bool):
 	soup = br.open(uri_materials)
 	soup = BeautifulSoup(soup.read(), "html.parser")
 	
@@ -125,20 +120,21 @@ def scan_page(br: Browser, uri_materials: str, saveto: str, fileext_whitelist: L
 
 		if ressource_classification is None:
 			print(f"[Ignored] Icon could not be classified: {icon.get('src')}")
-		elif ressource_classification[1] == 1 or ressource_classification[1] == 3:	# Download or Folder
+		elif ressource_classification[1] == 1 or ressource_classification[1] == 3:# Download or Folder
 			downloadpath = filelink(icon)
 
 			if downloadpath is not None:
-				download_from_raw_url(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive)
+				download_from_raw_url(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive, createdirs)
 		elif ressource_classification[1] == 2:	# Folder
 			downloadpath = filelink(icon)
 
 			if downloadpath is not None:
-				scan_sub_page(br, downloadpath, saveto, fileext_whitelist, pythomat, section, overwrite, detect, detect_recursive)
+				scan_sub_page(br, downloadpath, saveto, fileext_whitelist, pythomat, section, overwrite, detect, detect_recursive, createdirs)
 		else:	# Don't download | ressource_classification[1] == 0:
 			print(f"[Ignored] Icon not whitelisted: {icon.get('src')}")
 
-def scan_assignment_page(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int, detect: str, detect_recursive: bool):
+
+def scan_assignment_page(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: bool, detect: str, detect_recursive: bool, createdirs: bool):
 	soup = br.open(url)
 	soup = BeautifulSoup(soup.read(), "html.parser")
 
@@ -151,11 +147,12 @@ def scan_assignment_page(br: Browser, url: str, saveto: str, fileext_whitelist: 
 		elif ressource_classification[1] == 1:	# Download
 			filelink_dom = icon.parent.parent.find("a")
 			downloadpath = filelink_dom.get("href")
-			download_from_raw_url(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive)
+			download_from_raw_url(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive, createdirs)
 		else:	# Don't download | ressource_classification[1] == 0:
 			print(f"[Ignored] Icon not whitelisted: {icon.get('src')}")
 
-def scan_sub_page(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: int, detect: str, detect_recursive: bool):
+
+def scan_sub_page(br: Browser, url: str, saveto: str, fileext_whitelist: List[str], pythomat: Pythomat, section: str, overwrite: bool, detect: str, detect_recursive: bool, createdirs: bool):
 	soup = br.open(url)
 	soup = BeautifulSoup(soup.read(), "html.parser")
 
@@ -165,15 +162,15 @@ def scan_sub_page(br: Browser, url: str, saveto: str, fileext_whitelist: List[st
 
 		if ressource_classification is None:
 			print(f"[Ignored] Icon could not be classified: {icon.get('src')}")
-		elif ressource_classification[1] == 1:	# Download
+		elif ressource_classification[1] == 1: # Download
 			filelink_dom = icon.parent.parent
 			downloadpath = filelink_dom.get("href")
-			download_from_raw_url(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive)
-		else:	# Don't download | ressource_classification[1] == 0:
+			download_from_raw_url(downloadpath, pythomat, section, br, fileext_whitelist, overwrite, saveto, detect, detect_recursive, createdirs)
+		else: # Don't download | ressource_classification[1] == 0:
 			print(f"[Ignored] Icon is not whitelisted: {icon.get('src')}")
 
 
-def download_from_raw_url(href: str, pythomat: Pythomat, section: str, br: Browser, fileext_whitelist, overwrite: int, saveto: str, detect: str, detect_recursive: bool):
+def download_from_raw_url(href: str, pythomat: Pythomat, section: str, br: Browser, fileext_whitelist, overwrite: bool, saveto: str, detect: str, detect_recursive: bool, createdirs: bool):
 	response = br.open(href)
 	actualdownloadpath = response.geturl()
 	filename = urllib.parse.unquote("".join(actualdownloadpath.split("/")[-1].split(".")[:-1]).replace("_", " "))
@@ -183,4 +180,4 @@ def download_from_raw_url(href: str, pythomat: Pythomat, section: str, br: Brows
 		print(f"[Ignored] File extension is not whitelisted: {href}")
 		return
 
-	download(pythomat, section, br, href, overwrite, f"{filename}.{fileext}", saveto, detect, detect_recursive)
+	pythomat.download(section, href, f"{filename}.{fileext}", saveto, detect, detect_recursive=detect_recursive, createdirs=createdirs, overwrite=overwrite, browser=br)
