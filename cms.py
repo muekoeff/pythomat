@@ -125,14 +125,12 @@ def download(pythomat: Pythomat, section: str, br: Browser, url: str, overwrite:
 			filename = url.split("/")[-1]
 			filename = filename.split("?")[0]
 		do_download = True
-		if not saveto.endswith("/"):
-			saveto = saveto + "/"
 		if overwrite == 0 and pythomat.alreadyDownloaded(detect, filename, detect_recursive):
 			do_download = False
 
 		if do_download:
 			print(f"Downloading {url} as \"{filename}\" …")
-			br.retrieve(url, saveto + filename)
+			br.retrieve(url, os.path.join(saveto, filename))
 			pythomat.reportFinished(section, filename)
 			pythomat.reportLog(section, filename)
 		else:

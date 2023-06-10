@@ -47,7 +47,7 @@ class Pythomat:
 
             return False
         else:
-            return os.path.isfile(root + filename)
+            return os.path.isfile(os.path.join(root, filename))
 
     def closeLog(self):
         if self.logFile is not None:
@@ -70,10 +70,10 @@ class Pythomat:
 
                 br.open(url)
                 remote_time = time.strptime(br.response().info()["last-modified"], "%a, %d %b %Y %H:%M:%S GMT")
-                local_time = time.gmtime(os.stat(saveto + filename).st_mtime)
+                local_time = time.gmtime(os.stat(os.path.join(saveto, filename)).st_mtime)
                 do_download = (remote_time > local_time)
                 uptodate = True
-            elif overwrite == 0 and os.path.isfile(saveto + filename):
+            elif overwrite == 0 and os.path.isfile(os.path.join(saveto, filename)):
                 do_download = False
             else:
                 do_download = True
