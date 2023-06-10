@@ -57,7 +57,8 @@ def start(section: str, items: dict, pythomat: Pythomat):
 
 	if password is None and keyring_id is None:
 		print(f"No credentials provided for {section}!", file=sys.stderr)
-		exit(1)
+		pythomat.reportError(section, f"No credentials provided")
+		return
 	if password is None and keyring_id is not None:
 		try:
 			password = keyring.get_password(f"pythomat.{keyring_id}", username)
@@ -70,7 +71,8 @@ def start(section: str, items: dict, pythomat: Pythomat):
 				keyring.set_password(f"pythomat.{keyring_id}", username, password)
 		except keyring.errors.KeyringError as ex:
 			print(f"Login for {section} failed. Keyring locked: {ex}", file=sys.stderr)
-			exit(1)
+			pythomat.reportError(section, f"Login failed. Keyring locked: {ex}")
+			return
 
 	br = Browser()
 	br.set_handle_robots(False)
@@ -86,7 +88,8 @@ def start(section: str, items: dict, pythomat: Pythomat):
 	uri_afterlogin = br.geturl()
 	if "/login" in uri_afterlogin:
 		print(f"[Failed] Login failed for {section}. Url was {uri_afterlogin}", file=sys.stderr)
-		exit(1)
+		pythomat.reportError(section, f"Login failed. Url was {uri_afterlogin}")
+		return
 	else:
 		print(f"Login successful for {section}")
 
