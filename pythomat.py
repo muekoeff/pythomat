@@ -28,10 +28,16 @@ class Pythomat:
         return ini
 
     @staticmethod
-    def setupBrowser(br: Browser, url: str, httpUsername: str, httpPassword: str):
+    def get_browser(url: str, httpUsername: str, httpPassword: str):
+        br = Browser()
+        br.addheaders = [
+            ('User-agent', 'Pythomat')
+        ]
         if httpUsername is not None and httpPassword is not None:
             br.set_handle_robots(False)
             br.add_password(url, httpUsername, httpPassword)
+
+        return br
 
     def alreadyDownloaded(self, root: str, filename: str, recursive: bool) -> bool:
         if recursive:
@@ -60,8 +66,7 @@ class Pythomat:
                 saveto = saveto + "/"
 
             if overwrite == 1 and self.alreadyDownloaded(detect, filename, detect_recursive) and checklastmodified:
-                br = Browser()
-                self.setupBrowser(br, url, httpUsername, httpPassword)
+                br = self.get_browser(url, httpUsername, httpPassword)
 
                 br.open(url)
                 remote_time = time.strptime(br.response().info()["last-modified"], "%a, %d %b %Y %H:%M:%S GMT")
@@ -74,8 +79,7 @@ class Pythomat:
                 do_download = True
 
             if do_download:
-                br = Browser()
-                self.setupBrowser(br, url, httpUsername, httpPassword)
+                br = self.get_browser(url, httpUsername, httpPassword)
 
                 if createdirs and not os.path.exists(saveto):
                     os.makedirs(saveto)
@@ -99,9 +103,7 @@ class Pythomat:
 
     # Downloads all files with links containing pattern on path to saveto
     def downloadAll(self, section: str, url: str, createdirs: bool, overwrite: int, pattern: str, saveto: str, detect: str, detect_recursive: bool, httpUsername: str, httpPassword: str):
-        br = Browser()
-        self.setupBrowser(br, url, httpUsername, httpPassword)
-
+        br = self.get_browser(url, httpUsername, httpPassword)
         br.open(url)
         for link in br.links(url_regex=pattern):
             if link.url.startswith("http://") or link.url.startswith("https://"):

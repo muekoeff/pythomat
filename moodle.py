@@ -74,6 +74,9 @@ def start(section: str, items: dict, pythomat: Pythomat):
 
 	br = Browser()
 	br.set_handle_robots(False)
+	br.addheaders = [
+		('User-agent', 'Pythomat')
+	]
 	br.open(uri_login)
 	br.select_form(id_="login")
 	br["username"] = username
