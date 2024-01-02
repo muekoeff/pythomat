@@ -39,7 +39,7 @@ class Pythomat:
 
         return br
 
-    def alreadyDownloaded(self, root: str, filename: str, recursive: bool) -> bool:
+    def already_downloaded(self, root: str, filename: str, recursive: bool) -> bool:
         if recursive:
             for dir, sub_dirs, files in os.walk(root):
                 if filename in files:
@@ -54,7 +54,8 @@ class Pythomat:
             self.logFile.close()
 
     # Downloads a single file form url to path and names it filename
-    def download(self, section: str, url: str, createdirs: bool, overwrite: int, filename: str = "", saveto: str = "", detect: str = "", detect_recursive: bool = False,
+    def download(self, section: str, url: str, filename: str = "", saveto: str = "", detect: str = "",
+                 detect_recursive: bool = False, createdirs: bool = False, overwrite: bool = False,
                  checklastmodified: bool = True, httpUsername: str = None, httpPassword: str = None, logMessage: str = None, browser: Browser = None) -> bool:
         uptodate: bool = False
 
@@ -70,14 +71,14 @@ class Pythomat:
             if not saveto.endswith("/"):
                 saveto = saveto + "/"
 
-            if overwrite == 1 and self.alreadyDownloaded(detect, filename, detect_recursive) and checklastmodified:
+            if overwrite == 1 and self.already_downloaded(detect, filename, detect_recursive) and checklastmodified:
                 # Overwriting is enabled and file has been already downloaded
                 br.open(url)
                 remote_time = time.strptime(br.response().info()["last-modified"], "%a, %d %b %Y %H:%M:%S GMT")
                 local_time = time.gmtime(os.stat(os.path.join(saveto, filename)).st_mtime)
                 do_download = (remote_time > local_time)
                 uptodate = True
-            elif overwrite == 0 and self.alreadyDownloaded(detect, filename, detect_recursive):
+            elif overwrite == 0 and self.already_downloaded(detect, filename, detect_recursive):
                 # Overwriting is disabled and file has been already downloaded
                 do_download = False
             else:
@@ -109,18 +110,19 @@ class Pythomat:
         return False
 
     # Downloads all files with links containing pattern on path to saveto
-    def downloadAll(self, section: str, url: str, createdirs: bool, overwrite: int, pattern: str, saveto: str, detect: str, detect_recursive: bool, httpUsername: str, httpPassword: str):
+    def download_all(self, section: str, url: str, pattern: str, saveto: str, detect: str,
+                     detect_recursive: bool = False, createdirs: bool = False, overwrite: bool = False, httpUsername: str = None, httpPassword: str = None):
         br = self.get_browser(url, httpUsername, httpPassword)
         br.open(url)
         for link in br.links(url_regex=pattern):
             if link.url.startswith("http://") or link.url.startswith("https://"):
-                self.download(section, link.url, createdirs, overwrite, saveto=saveto, detect=detect, detect_recursive=detect_recursive, httpUsername=httpUsername, httpPassword=httpPassword)
+                self.download(section, link.url, saveto=saveto, detect=detect, detect_recursive=detect_recursive, createdirs=createdirs, overwrite=overwrite, httpUsername=httpUsername, httpPassword=httpPassword)
             elif link.url.startswith("/"):
-                self.download(section, link.base_url[:link.base_url.find("/", 8)] + link.url, createdirs, overwrite, saveto=saveto, detect=detect, detect_recursive=detect_recursive, httpUsername=httpUsername, httpPassword=httpPassword)
+                self.download(section, link.base_url[:link.base_url.find("/", 8)] + link.url, saveto=saveto, detect=detect, detect_recursive=detect_recursive, createdirs=createdirs, overwrite=overwrite, httpUsername=httpUsername, httpPassword=httpPassword)
             else:
-                self.download(section, link.base_url[:link.base_url.rfind("/") + 1] + link.url, createdirs, overwrite, saveto=saveto, detect=detect, detect_recursive=detect_recursive, httpUsername=httpUsername, httpPassword=httpPassword)
+                self.download(section, link.base_url[:link.base_url.rfind("/") + 1] + link.url, saveto=saveto, detect=detect, detect_recursive=detect_recursive, createdirs=createdirs, overwrite=overwrite, httpUsername=httpUsername, httpPassword=httpPassword)
 
-    # Downloads YouTuve-Video with id to saveto and overwrites (or not)
+    # Downloads YouTube-Video with id to saveto and overwrites (or not)
     def downloadYoutube(self, section: str, id: str, overwrite=True, saveto=""):
         output = f"-o \"{saveto}%(title)s-%(id)s.%(ext)s\""
         if overwrite or len(glob.glob(f"{saveto}*{id}*")) == 0:
@@ -130,18 +132,18 @@ class Pythomat:
 
     # Parses .ini file and executes the given Downloads
     def downloadFromIni(self, ini: configparser.ConfigParser, createdirs: bool, rules: str):
-        workingdir: str = str(pathlib.Path().absolute())
-        ruleList: List[str] = None if rules is None else rules.split(",")
+        working_dir: str = str(pathlib.Path().absolute())
+        rule_list: List[str] = None if rules is None else rules.split(",")
 
         for section in ini.sections():
-            os.chdir(workingdir)  # Reset working dir in case it has been changed
+            os.chdir(working_dir)  # Reset working dir in case it has been changed
 
-            if ruleList is not None and section not in ruleList and rules != "all":
+            if rule_list is not None and section not in rule_list and rules != "all":
                 print(f"### Skipping {section} ###")
                 continue
 
             skip = int(ini.get(section, "skip", fallback=0))
-            if ruleList is None and skip == 1:
+            if rule_list is None and skip == 1:
                 print(f"### Skipping {section} - must be started manually ###")
                 continue
 
@@ -152,14 +154,14 @@ class Pythomat:
             detect = ini.get(section, "detect", fallback=saveto)
             detect_recursive = ini.get(section, "detect_recursive", fallback=False)
             mode = ini.get(section, "mode")
-            httpUsername = ini.get(section, "username", fallback=None)
-            httpPassword = ini.get(section, "password", fallback=None)
+            http_username = ini.get(section, "username", fallback=None)
+            http_password = ini.get(section, "password", fallback=None)
 
             if mode == "batch":
                 pattern = ini.get(section, "pattern")
-                overwrite = ini.get(section, "overwrite", fallback=1)
+                overwrite = ini.get(section, "overwrite", fallback="False") == "False" or ini.get(section, "overwrite") == "0"
                 try:
-                    self.downloadAll(section, uri, createdirs, overwrite, pattern, saveto, detect, detect_recursive, httpUsername, httpPassword)
+                    self.download_all(section, uri, pattern, saveto, detect, detect_recursive=detect_recursive, createdirs=createdirs, overwrite=overwrite, httpUsername=http_username, httpPassword=http_password)
                 except Exception as e:
                     print("An error occured", file=sys.stderr)
                     print(traceback.format_exc(), file=sys.stderr)
@@ -190,15 +192,15 @@ class Pythomat:
                     self.reportError(section, str(e))
             elif mode == "single":
                 name = ini.get(section, "filename", fallback="")
-                overwrite = ini.get(section, "overwrite", fallback=1)
+                overwrite = ini.get(section, "overwrite", fallback="False") == "False" or ini.get(section, "overwrite") == "0"
                 try:
-                    self.download(section, uri, createdirs, overwrite, name, saveto, detect, detect_recursive, httpUsername=httpUsername, httpPassword=httpPassword)
+                    self.download(section, uri, name, saveto, detect, detect_recursive=detect_recursive, createdirs=createdirs, overwrite=overwrite, httpUsername=http_username, httpPassword=http_password)
                 except Exception as e:
                     print("An error occured", file=sys.stderr)
                     print(traceback.format_exc(), file=sys.stderr)
                     self.reportError(section, str(e))
             elif mode == "youtube":
-                overwrite = int(ini.get(section, "overwrite", fallback=1))
+                overwrite = ini.get(section, "overwrite", fallback="False") == "False" or ini.get(section, "overwrite") == "0"
                 try:
                     self.downloadYoutube(section, uri, overwrite, saveto)
                 except Exception as e:

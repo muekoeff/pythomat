@@ -1,6 +1,5 @@
 import getpass
 import http.client
-import os
 import re
 import sys
 import urllib
@@ -28,7 +27,7 @@ def start(section: str, items: dict, pythomat: Pythomat):
 	keyring_id = items["keyring_id"] if "keyring_id" in items else None
 	fileext_whitelist = items["fileext_whitelist"] if "fileext_whitelist" in items else None
 	fileext_blacklist = items["fileext_blacklist"] if "fileext_blacklist" in items else None
-	overwrite = int(items["overwrite"]) if "overwrite" in items else 0
+	overwrite = items["overwrite"] == "true" or items["overwrite"] == "1" if "overwrite" in items else False
 	createdirs = items["createdirs"] if "createdirs" in items else None
 
 	if password is None and keyring_id is None:
@@ -109,6 +108,6 @@ def start(section: str, items: dict, pythomat: Pythomat):
 		local_filename = f"{filename}.{fileext}" if rev is None else f"{filename} ({rev}).{fileext}"
 
 		if downloadpath.startswith(uri):
-			pythomat.download(section, downloadpath, createdirs, overwrite, local_filename, saveto, detect, detect_recursive, browser=br)
+			pythomat.download(section, downloadpath, local_filename, saveto, detect, detect_recursive=detect_recursive, createdirs=createdirs, overwrite=overwrite, browser=br)
 		else:
 			print(f"[Ignored] Externally hosted: {downloadpath}")
