@@ -1,156 +1,165 @@
 Pythomat
 ========
 
-Pythomat ist der ideale Helfer für (faule) Studenten. Wer die Flut an Skript-Versionen, Übungsblättern und Vorlesungsmitschnitten kennt, weiß, wie nervig es sein kann, seine digitale Kopie davon immer auf dem neusten Stand zu halten, sodass er auch in Bus, Bahn oder dem Saarland darauf zugreifen kann, ohne sich mit langsamen Mobilverbindungen herum zu schlagen.
+Pythomat is the ideal helper for (lazy) students. Anyone familiar with the flood of script versions, exercise sheets and lecture recordings knows how annoying it can be to keep your digital copy of them up to date so that you can access them on the bus, train or in Saarland without having to deal with slow mobile connections. As apparently making the files available as a shared folder in the [Nextcloud instance of the subject area](https://oc.cs.uni-saarland.de/) requires too much computer magic, Pythomat helps you automate downloading scripts.
 
-Die Dateien als geteilten Ordner in der [Nextcloud-Instanz der Fachrichtung](https://oc.cs.uni-saarland.de/) zur Verfügung zu stellen ist ja anscheinend leider zu krasse Computermagie.
+Pythomat is easy to extend, small and (relatively) quick to install. It is written in Python because *Cehmat*, *Javamat*, *Essemelmat* or *OCamlmat* just sounds bonkers. And because Python is platform-independent. And, because the (original) author didn't know it when he started the script.
 
-Der Pythomat ist leicht erweiterbar, klein und (relativ) schnell installiert. Er ist in Python geschrieben, weil Cehmat, Javamat oder Essemelmat einfach dumm klingt. Und, weil Python plattformunabhängig ist. Und, weil der Autor es noch nicht konnte, als er das Skript begonnen hat.
-
-# Voraussetzungen
-Python 3, sowie das Paket Mechanize, und bei Verwendung des Moduls [*cms*](#cms-1) bzw. [*moodle*](#moodle-1) BeautifulSoup4 und Keyring, werden benötigt.
+# Prerequisites
+Python 3, as well as the package Mechanize, and when using the module [*cms*](#cms-1) or [*moodle*](#moodle-1) BeautifulSoup4 and Keyring, are required.
 
 # Installation
-- [Python 3](https://python.org/) installieren.
-- [pip](https://pip.pypa.io/en/stable/installing/) installieren. Dies dient zum einfachen Installieren der Abhängigkeiten.
-- In der Konsole `git clone https://github.com/muekoeff/pythomat.git && cd pythomat` eingeben; oder dieses Repo [herunterladen](https://github.com/muekoeff/pythomat/archive/master.zip) und in ein Verzeichnis entpacken.
-- Um serverseitige Änderungen an der *pythomat.ini* zu ignorieren, empfiehlt es sich, diese Datei von Git ignorieren zu lassen. Dies ist beispielsweise durch Ausführen des Befehls `echo "pythomat.ini" >> "$(git rev-parse --show-toplevel)/.git/info/exclude"` im lokalen Git-Repository-Verzeichnis möglich.
-- Mit `pip3 install .` Abhängigkeiten installieren. Dies ist auch manuell möglich, siehe den [folgenden Abschnitt](#manuelle-installation).
-- Sollte der Modus [*youtube*](#youtube) genutzt werden:
-  - [*youtube-dl*](https://ytdl-org.github.io/youtube-dl/) über den Paketmanager installieren.
-  - Oder *youtube-dl* herunterladen, dann die heruntergeladene Datei ins erstellte Verzeichnis verschieben.
+- Install [Python 3](https://python.org/).
+- Install [pip](https://pip.pypa.io/en/stable/installing/). This is for easy installation of the dependencies.
+- Run `git clone https://github.com/muekoeff/pythomat.git && cd pythomat`; or [download](https://github.com/muekoeff/pythomat/archive/master.zip) this repo and unpack it into a directory.
+- To ignore server-side changes to `pythomat.ini`, it is recommended to have Git ignore this file. This is possible, for example, by executing the command `echo "pythomat.ini" >> "$(git rev-parse --show-toplevel)/.git/info/exclude"` in the local Git repository directory.
+- If the [*youtube*](#youtube) mode is used:
+  - Install [*youtube-dl*](https://ytdl-org.github.io/youtube-dl/) via your system's package manager.
+  - Or download *youtube-dl*, then move the downloaded file to the created directory.
 
-## Manuelle Installation
-- In der Konsole `pip3 install mechanize` eingeben.
-- Sollte das Modul [*cms*](#cms-1) bzw. [*moodle*](#moodle-1) genutzt werden:
-  - In der Konsole `pip3 install beautifulsoup4 keyring --upgrade keyrings.alt` eingeben.
+## Manual Installation
+When using `pythomat.sh`, you don't have to take care of installation of dependencies. If you want to do that manually:
 
-## Updaten
-Zum Updaten kann Git verwendet werden. Einen automatisierten Mechanismus zum Updaten oder Überprüfen auf Updates gibt es nicht. Bei Bedarf kann das Projekt auf GitHub beobachtet werden.
-- Ins Pythomat-Verzeichnis wechseln.
-- Sicherstellen, dass mittels `echo "pythomat.ini" >> "$(git rev-parse --show-toplevel)/.git/info/exclude"` die *pythomat.ini* von Updates ausgeschlossen wird (Nicht notwendig, falls diese unverändert ist).
+- Create a virtual environment by running `python -m venv venv`.
+- Load the virtual environment by running `source venv/bin/activate`.
+- Either…
+  - Install all required dependencies with `pip3 install .`.
+  - Install dependencies manually:
+    - Run `pip3 install mechanize`.
+    - If modules [*cms*](#cms-1) or [*moodle*](#moodle-1) are used:
+      - Run `pip3 install beautifulsoup4 keyring --upgrade keyrings.alt`.
+
+## Updating
+Git can be used for updating Pythomat. There is no automated mechanism for updating or checking for updates. If required, the project can be subscribed to on GitHub so that you receive notified via email.
+- Change to the Pythomat directory.
+- Ensure that `pythomat.ini` is excluded from updates using `echo "pythomat.ini" >> "$(git rev-parse --show-toplevel)/.git/info/exclude"` (not necessary if it is unchanged).
 - `git pull`
 
-# Ausführung
-- Im Terminal `python3 pythomat.py` eintippen und <kbd>Enter</kbd> drücken.
-- Optional kann als Argument eine alternative \*.ini-Datei übergeben werden. Standardmäßig wird die *pythomat.ini* im Arbeitsverzeichnis eingelesen.
+# Running
+- Run `pythomat.sh`¹.
+- Optionally, an alternative \*.ini file can be passed as an argument. By default, `pythomat.ini` is read in the working directory.
 
-Ich habe mir eine Desktop-Verknüpfung mit folgendem Befehl angelegt, damit die Ausgabe auch nach Abschluss noch offen bleibt:
+Personally, I have created a desktop shortcut with the following command so that the output remains open even after completion:
 
 ```shell
-sh -c 'python3 "/link/zu/pythomat.py" --log "/link/zu/Pythomat.log" "/link/zu/Pythomat.ini"; echo "Zum Beenden Enter drücken..." && read name'
+/usr/bin/env sh -c '"/path/to/pythomat.sh" --log "/path/to/Pythomat.log" "/path/to/Pythomat.ini"; echo "Press Any Key To Exit…" && read name'
 ```
 
-## Argumente
-| Parameter       | Beschreibung |
-| --------------- | ------------ |
-| `--createdirs`  | Legt automatisch fehlende Verzeichnisse an, in die heruntergeladen werden soll. |
-| `-h`, `--help`  | Zeigt eine Liste aller unterstützten Argumente an. |
-| `-l`, `--list`  | Zeigt eine Liste aller vom Benutzer definierten Regeln an. |
-| `--log <Pfad>`  | Speichert eine Historie heruntergeladener Dateien im spezifizierten Pfad ab. |
-| `-r`, `--rules` | Führt nur die mit Komma getrennt aufgezählten Regeln aus. Nicht aufgezählte Regeln werden ausgelassen. Mit dem Wert `all` werden alle Regeln ausgeführt, auch solche die normalerweise mit `skip` ausgelassen werden. |
-| `--version`     | Zeigt einen Link zum GitHub-Repository an. |
+¹ `pythomat.sh` is a wrapper for `pythomat.py` that takes care of setting up or loading a virtual environment.
 
-# Konfiguration
-Pythomat benutzt die Standard-Bibliothek ConfigParser zum Parsen von ini-Dateien. Standardmäßig wird *pythomat.ini* verwendet.
+## Arguments
+| Parameter       | Description |
+| --------------- | ----------- |
+| `--createdirs`  | Automatically create missing directories to download to. |
+| `-h`, `--help`  | Display a list of all supported arguments. |
+| `-l`, `--list`  | Display a list of all rules specified in the `pythomat.ini`. |
+| `--log <path>`  | Log downloaded files to the specified path. |
+| `-r`, `--rules` | Only execute the rules separated by commas. Rules not listed are omitted. With the value `all`, all rules are executed, even those that are normally omitted with `skip`. |
+| `--version`     | Display a link to the GitHub repository. |
 
-Hier eine Beispieldatei, die ein einzelnes Skript herunterlädt. Der Name des Abschnitts, angegeben in einer separaten Zeile in eckigen Klammern, kann frei gewählt werden.
+# Configuration
+Pythomat uses the standard ConfigParser library to parse ini files. By default, `pythomat.ini`in the current working directory is used.
 
-	[VorlesungsSkript]
-	mode = single
-	uri = http://www.vorlesung.de/skript.pdf
-	saveto = /irgendein/Pfad/
+Here is an example file that downloads a single script. The name of the section, specified in a separate line in square brackets, can be chosen freely:
 
-## Modi
-Mit dem Parameter `mode` kann zwischen den zur Verfügung stehenden Modi gewechselt werden. Folgende Modi stehen zur Verfügung: [`batch`](#batch), [`cms`](#cms), [`module`](#module), [`moodle`](#moodle), [`single`](#single), [`youtube`](#youtube)
+```ini
+[LectureScript]
+mode = single
+uri = https://some.chair.uni-saarland.de/script.pdf
+saveto = /some/path/
+```
+
+## Modes
+The parameter `mode` determines which of the available modes to use: [`batch`](#batch), [`cms`](#cms), [`module`](#module), [`moodle`](#moodle), [`single`](#single), [`youtube`](#youtube)
 
 ### `batch`
-Durchsucht eine Seite nach Links und lädt alle gematchten Dateien herunter.
+Search a page for links and download all matched files.
 
-#### Parameter
-| Parameter           | Beschreibung |
-| ------------------- | ------------ |
-| `uri`               | URL, die nach Links durchsucht werden soll. |
-| `saveto`            | Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
-| `detect`            | Verzeichnis, welches durchsucht werden soll, ob ein Dateiname bereits existiert und somit die Datei bereits heruntergeladen wurde. Entspricht, falls nicht angegeben, `saveto`. |
-| `detect_recursive`  | Ob das `detect`-Verzeichnis rekursiv durchsucht werden soll. |
-| `pattern`           | Regulärer Ausdruck, den der Link erfüllen muss, damit er heruntergeladen wird. |
-| `username`          | *optional:* Benutzername für HTTP-Authentifizierung. Nur zusammen mit `password` zu verwenden. |
-| `password`          | *optional:* Kennwort für HTTP-Authentifizierung. Nur zusammen mit `username` zu verwenden. |
-| `overwrite`         | *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
-| `skip`              | *optional:* Wenn auf 1 gesetzt, wird diese Regel ausschließlich dann ausgeführt, wenn sie im `--rules`-Argument aufgelistet ist. |
+#### Parameters
+| Parameter           | Description |
+| ------------------- | ----------- |
+| `uri`               | URL to search for links. |
+| `saveto`            | Directory to which the files are to be downloaded. |
+| `detect`            | Directory to be searched for whether a filename already exists and therefore whether the file has already been downloaded. Corresponds to `saveto` if not specified. |
+| `detect_recursive`  | Whether the `detect` directory should be searched recursively. |
+| `pattern`           | Regular expression that the link must fulfil in order to be downloaded. |
+| `username`          | *optional:* Username for HTTP authentication. Only to be used together with `password`. |
+| `password`          | *optional:* Password for HTTP authentication. Only to be used together with `username`. |
+| `overwrite`         | *optional:* Whether an existing file at the same path may be overwritten. `1` corresponds to yes, `0` corresponds to no. If not specified, `1`. |
+| `skip`              | *optional:* If set to `1`, this rule is only executed if it is listed in the `--rules` argument. |
 
 ### `cms`
-Kurzform für einen Modulaufruf mit *cms* als Modul. Siehe [entsprechenden Abschnitt](#cms-1).
+Short form for a module call with *cms* as module. See [the corresponding section](#cms-1).
 
 ### `moodle`
-Kurzform für einen Modulaufruf mit *moodle* als Modul. Siehe [entsprechenden Abschnitt](#moodle-1).
+Short form for a module call with *moodle* as module. See [the corresponding section](#moodle-1).
 
 ### `module`
-Lädt `<module>.py` und führt `<module>.start(section, items, pythomat)` aus. `section` ist dabei der Name der aktuellen Konfiguration als String, `items` ein Dictionary, welches die Einstellungen enthält, und `pythomat` eine Referenz auf das `Pythomat`-Objekt.
-Über die `pythomat`-Referenz sollte `reportFailed(section, filename)` und `reportFinished(section, filename)` aufgerufen werden, um im abschließenden Report aufgelistet zu werden. ([Auflistung der Module](#module-1))
+Load `<module>.py` and execute `<module>.start(section, items, pythomat)`.
+`section` is the name of the current configuration as a string, `items` is a dictionary containing the settings, and `pythomat` is a reference to the `pythomat` object.
+The `pythomat` reference should be used to call `reportFailed(section, filename)` and `reportFinished(section, filename)` in order to be listed in the final report. ([Listing of modules](#module-1))
 
-#### Parameter
-| Parameter            | Beschreibung |
-| -------------------- | ------------ |
-| `module`             | Name des zu ladenden Moduls. (entspricht Dateinamen ohne `.py`-Dateiendung) |
-| `skip`               | *optional:* Wenn auf 1 gesetzt, wird diese Regel ausschließlich dann ausgeführt, wenn sie im `--rules`-Argument aufgelistet ist. |
-| *Abhängig von Modul* | Module können weitere Parameter einführen. |
+#### Parameters
+| Parameter             | Description |
+| --------------------- | ----------- |
+| `module`              | Name of the module to be loaded. (corresponds to filenames without `.py` file extension) |
+| `skip`                | *optional:* If set to `1`, this rule is only executed if it is listed in the `--rules` argument. |
+| *dependent on module* | Modules can introduce further parameters. |
 
 ### `single`
-Lädt eine einzelne Datei herunter, falls sie auf dem Server geändert wurde.
+Download a single file if it has been changed on the server.
 
-| Parameter           | Beschreibung |
-| ------------------- | ------------ |
-| `uri`               | URL der zu herunterzuladenden Datei. |
-| `saveto`            | Verzeichnis, in welches die Datei heruntergeladen werden soll. |
-| `detect`            | Verzeichnis, welches durchsucht werden soll, ob ein Dateiname bereits existiert und somit die Datei bereits heruntergeladen wurde. Entspricht, falls nicht angegeben, `saveto`. |
-| `detect_recursive`  | Ob das `detect`-Verzeichnis rekursiv durchsucht werden soll. |
-| `filename           | *optional:* Dateiname für die heruntergeladene Datei. Falls nicht angegeben, wird der Dateiname aus `uri` entnommen. |
-| `username`          | *optional:* Benutzername für HTTP-Authentifizierung. Nur zusammen mit `password` zu verwenden. |
-| `password`          | *optional:* Kennwort für HTTP-Authentifizierung. Nur zusammen mit `username` zu verwenden. |
-| `overwrite`         | *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
-| `skip`              | *optional:* Wenn auf 1 gesetzt, wird diese Regel ausschließlich dann ausgeführt, wenn sie im `--rules`-Argument aufgelistet ist. |
+| Parameter           | Description |
+| ------------------- | ----------- |
+| `uri`               | URL of the file to download. |
+| `saveto`            | Directory to which the file is to be downloaded. |
+| `detect`            | Directory to be searched to see whether a filename already exists and therefore whether the file has already been downloaded. Corresponds to `saveto` if not specified. |
+| `detect_recursive`  | Whether the `detect` directory should be searched recursively. |
+| `filename`          | *optional:* Filename for the downloaded file. If not specified, the filename is taken from `uri`. |
+| `username`          | *optional:* Username for HTTP authentication. Only to be used together with `password`. |
+| `password`          | *optional:* Password for HTTP authentication. Only to be used together with `username`. |
+| `overwrite`         | *optional:* Whether an existing file at the same path may be overwritten. `1` corresponds to yes, `0` corresponds to no. If not specified, `1`. |
+| `skip`              | *optional:* If set to `1`, this rule is only executed if it is listed in the `--rules` argument. |
 
 ### `youtube`
-**Legacy.** Lädt ein einzelnes YouTube-Video der gegebenen id herunter.
+**Legacy.** Downloads a single YouTube video of the given id.
 
-| Parameter   | Beschreibung |
-| ----------- | ------------ |
-| `uri`       |  |
-| `saveto`    |  |
-| `overwrite` | *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 1. |
+| Parameter   | Description |
+| ----------- | ----------- |
+| `uri`       | |
+| `saveto`    | |
+| `overwrite` | *optional:* Whether an existing file at the same path may be overwritten. `1` corresponds to yes, `0` corresponds to no. If not specified, `1`. |
 
 ## Module
-Module werden mit dem Modus `mode = module` verwendet. Dazu muss in `module` der Name des zu ladenden Modus eingetragen werden. Weitere Module lassen sich schnell selbst erstellen. Folgendes Modul stehen zur Verfügung: [`cms`](#cms-1), [`moodle`](#moodle-1).
+Modules are used with the mode `mode = module`. To do this, the name of the mode to be loaded must be entered in `module`. Additional modules are easy to create. The following modules are available: [`cms`](#cms-1), [`moodle`](#moodle-1).
 
 ### `cms`
-Unterstützung für CakeCMS-Materialseiten.
+Support for CakeCMS material pages.
 
-| Parameter           | Beschreibung |
-| ------------------- |--------------|
-| `uri`               | URL der Hauptseite des CMS. |
-| `saveto`            | Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
-| `detect`            | Verzeichnis, welches durchsucht werden soll, ob ein Dateiname bereits existiert und somit die Datei bereits heruntergeladen wurde. Entspricht, falls nicht angegeben, `saveto`. |
-| `detect_recursive`  | Ob das `detect`-Verzeichnis rekursiv durchsucht werden soll. |
-| `username`          | Benutzername im CMS. |
-| `password`          | *alternativ zu `keyring_id`* <br> Kennwort zum in `username` angegebenen Benutzer in Klartext. |
-| `keyring_id`        | *alternativ zu `password`* <br> Kennung, welche zum Service `pythomat.<keyring_id>` zusammengesetzt wird. |Sollte unter der Kennung kein Kennwort im System-Keyring vorhanden sein, so wird der Benutzer dazu aufgefordert eins einzugeben. Dieses wird im Keyring abgespeichert. |
-| `fileext_whitelist` | *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die heruntergeladen werden sollen. |
-| `fileext_blacklist` | *optional:* Mit Leerzeichen getrennte Auflistung an Dateiendungen, die nicht heruntergeladen werden sollen. |
-| `overwrite`         | *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 0. |
+| Parameter           | Description |
+| ------------------- |-------------|
+| `uri`               | URL of the main page of the CMS. |
+| `saveto`            | Directory to which the files are to be downloaded. |
+| `detect`            | Directory to be searched to see whether a filename already exists and therefore whether the file has already been downloaded. Corresponds to `saveto` if not specified. |
+| `detect_recursive`  | Whether the `detect` directory should be searched recursively. |
+| `username`          | Username in the CMS instance. |
+| `password`          | *instead of `keyring_id`* <br> Password corresponding to the `username` in cleartext. |
+| `keyring_id`        | *instead of `password`* <br> Identifier, which is assembled to the service `pythomat.<keyring_id>`. If there is no password in the system keyring under the identifier, the user is prompted to enter one. This is saved in the keyring. |
+| `fileext_whitelist` | *optional:* Space-separated list of file extensions that are to be downloaded. |
+| `fileext_blacklist` | *optional:* Space-separated list of file extensions that should not be downloaded. |
+| `overwrite`         | *optional:* Whether an existing file at the same path may be overwritten. `1` corresponds to yes, `0` corresponds to no. If not specified, `0`. |
 
 ### `moodle`
-Unterstützung für Moodle-Instanzen.
+Support for Moodle instances.
 
-| Parameter           | Beschreibung |
-| ------------------- | ------------ |
-| `uri`               | URL der Hauptseite der Veranstaltung auf Moodle. |
-| `saveto`            | Verzeichnis, in welches die Dateien heruntergeladen werden sollen. |
-| `detect`            | Verzeichnis, welches durchsucht werden soll, ob ein Dateiname bereits existiert und somit die Datei bereits heruntergeladen wurde. Entspricht, falls nicht angegeben, `saveto`. |
-| `detect_recursive`  | Ob das `detect`-Verzeichnis rekursiv durchsucht werden soll. |
+| Parameter           | Description |
+| ------------------- | ----------- |
+| `uri`               | URL of the main page of the event on Moodle. |
+| `saveto`            | Directory to which the files are to be downloaded. |
+| `detect`            | Directory to be searched to see whether a filename already exists and therefore whether the file has already been downloaded. Corresponds to `saveto` if not specified. |
+| `detect_recursive`  | Whether the `detect` directory should be searched recursively. |
 | `username`          | Benutzername in der Moodle-Instanz. |
-| `password`          | *alternativ zu `keyring_id`* <br> Kennwort zum in `username` angegebenen Benutzer in Klartext. |
-| `keyring_id`        | *alternativ zu `password`* <br> Kennung, welche zum Service `pythomat.<keyring_id>` zusammengesetzt wird. |Sollte unter der Kennung kein Kennwort im System-Keyring vorhanden sein, so wird der Benutzer dazu aufgefordert eins einzugeben. Dieses wird im Keyring abgespeichert. |
-| `fileext_whitelist` | Mit Leerzeichen getrennte Auflistung an Dateiendungen, die heruntergeladen werden sollen. Für mp4 ist zu beachten, dass `mpeg mp4` in die Auflistung aufgenommen werden muss. |
-| `overwrite`         | *optional:* Ob eine bereits existierende Datei unter dem gleichen Pfad überschrieben werden darf. 1 entspricht ja, 0 entspricht nein. Falls nicht angegeben, 0. |
+| `password`          | *instead of `keyring_id`* <br> Password corresponding to the `username` in cleartext. |
+| `keyring_id`        | *instead of `password`* <br> Identifier, which is assembled to the service `pythomat.<keyring_id>`. If there is no password in the system keyring under the identifier, the user is prompted to enter one. This is saved in the keyring. |
+| `fileext_whitelist` | Space-separated list of file extensions that are to be downloaded. |
+| `overwrite`         | *optional:* Whether an existing file at the same path may be overwritten. `1` corresponds to yes, `0` corresponds to no. If not specified, `0`. |
