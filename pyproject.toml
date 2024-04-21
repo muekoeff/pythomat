@@ -1,0 +1,29 @@
+[project]
+name = "pythomat"
+version = "0.0.1"
+dependencies = [
+  "beautifulsoup4",
+  "keyring",
+  "keyrings.alt",
+  "mechanize"
+]
+requires-python = ">=3"
+authors = [
+  {name = "µKöff", email = "muekoeff@muekev.de"},
+  {name = "yforster"}
+]
+maintainers = [
+  {name = "µKöff", email = "muekoeff@muekev.de"},
+]
+description = ""
+readme = "README.md"
+
+[project.urls]
+Repository = "https://github.com/muekoeff/pythomat.git"
+Issues = "https://github.com/muekoeff/pythomat/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pythomat"]
+exclude = []
+namespaces = false
